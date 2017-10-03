@@ -1,0 +1,30 @@
+{
+  "name": "gw2tools-api",
+  "version": "1.0.0",
+  "description": "API for GW2-RP Tools website",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nakasar/gw2rp-tools_API.git"
+  },
+  "keywords": [
+    "gw2rp-tools"
+  ],
+  "author": "Nakasar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nakasar/gw2rp-tools_API/issues"
+  },
+  "homepage": "https://github.com/Nakasar/gw2rp-tools_API#readme",
+  "devDependencies": {
+    "nodemon": "^1.12.1"
+  },
+  "dependencies": {
+    "express": "^4.16.1",
+    "mongoose": "^4.12.0"
+  }
+}
