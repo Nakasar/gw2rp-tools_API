@@ -3,21 +3,30 @@ var express = require('express'),
   port = process.env.PORT || 3000,
   mongoose = require('mongoose'),
   Event = require('./api/models/eventsModel'),
-  bodyParser = require('body-parser');
+  Location = require('./api/models/locationsModel'),
+  User = require('./api/models/usersModel'),
+  bodyParser = require('body-parser'),
+  config = require('./config'),
+  jwt = require('jsonwebtoken');
 
 // mongoose connection
 mongoose.Promise = global.Promise;
-mongoose.connect('<DBURL>');
+mongoose.connect(config.database);
+app.set('secretKey', config.secret);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+var apiRoutes = express.Router();
+var routes = require('./api/routes/routes');
+routes(apiRoutes);
+
+app.use('/api', apiRoutes)
+
 app.use(function(req, res) {
   res.status(404).send({url: req.originalUrl + ' not found'})
 });
 
-var routes = require('./api/routes/eventsRoutes');
-routes(app);
-
 app.listen(port);
 
-console.log('todo list RESTful API server started on: ' + port);
+console.log('GW2RP RESTful API server started on: ' + port);

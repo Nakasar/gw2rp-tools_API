@@ -22,7 +22,7 @@ exports.create_event = function(req, res) {
 };
 
 exports.read_event = function(req, res) {
-  Event.findById(req.params.taskId, function(err, event) {
+  Event.findById(req.params.eventId, function(err, event) {
     if (err) {
       res.send(err);
     }
@@ -31,7 +31,7 @@ exports.read_event = function(req, res) {
 };
 
 exports.update_event = function(req, res) {
-  Event.findOneAndUpdate({_id: req.params.taskId}, req.body, {new: true}, function(err, event) {
+  Event.findOneAndUpdate({_id: req.params.eventId}, req.body, {new: true}, function(err, event) {
     if (err) {
       res.send(err);
     };
@@ -41,7 +41,7 @@ exports.update_event = function(req, res) {
 
 exports.delete_event = function(req, res) {
   Event.remove({
-    _id: req.params.taskId
+    _id: req.params.eventId
   }, function(err, event) {
     if (err) {
       res.send(err);
