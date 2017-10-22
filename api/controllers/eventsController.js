@@ -13,6 +13,7 @@ exports.list_all_events = function(req, res) {
 
 exports.create_event = function(req, res) {
   var new_event = new Event(req.body);
+  new_event.owner = req.decoded.user_id;
   new_event.save(function(err, event) {
     if (err) {
       res.send(err);
@@ -31,21 +32,41 @@ exports.read_event = function(req, res) {
 };
 
 exports.update_event = function(req, res) {
-  Event.findOneAndUpdate({_id: req.params.eventId}, req.body, {new: true}, function(err, event) {
+  Event.findById(req.params.eventId, function(err, event) {
     if (err) {
       res.send(err);
-    };
-    res.json(event);
+    } else {
+      if (event.owner === req.decoded.user_id || req.decoded.admin) {
+        Event.findOneAndUpdate({_id: req.params.eventId}, req.body, {new: true}, function(err, event) {
+          if (err) {
+            res.send(err);
+          };
+          res.json(event);
+        });
+      } else {
+        res.json({ success: false, message: 'You are not the owner of this event.'})
+      }
+    }
   });
 };
 
 exports.delete_event = function(req, res) {
-  Event.remove({
-    _id: req.params.eventId
-  }, function(err, event) {
+  Event.findById(req.params.eventId, function(err, event) {
     if (err) {
       res.send(err);
+    } else {
+      if (event.owner === req.decoded.user_id || req.decoded.admin) {
+        Event.remove({
+          _id: req.params.eventId
+        }, function(err, event) {
+          if (err) {
+            res.send(err);
+          }
+          res.json({ message: 'Event successfully deleted' });
+        });
+      } else {
+        res.json({ success: false, message: 'You are not the owner of this event.'})
+      }
     }
-    res.json({ message: 'Event successfully deleted' });
   });
 };

@@ -66,7 +66,7 @@ exports.login_user = function(req, res) {
         res.json({ success: false, message: 'Bad credidentials.' });
       } else {
         //create token
-        const payload = { admin: user.admin };
+        const payload = { admin: user.admin, user_id: user._id };
         var token = jwt.sign(payload, req.app.settings.secretKey, {
           expiresIn: 86400 // 24 hours
         });
