@@ -1,5 +1,52 @@
 gw2rp-tools_API
 ==================
+Utilisation
+-------------------
+**Les requêtes suivants sont accessibles sans authentification :**  
+Il est possible d'obtenir la liste des évènements à l'adresse `/api/events` (requête GET). L'adresse `/api/events/<eventId>` permet d'obtenir les détails sur un évènement particulier.  
+La liste des lieux s'obtient à l'adresse `/api/events` (requête GET).  L'adresse `/api/locations/<locationId>` permet d'obtenir les détails sur un lieux particulier.  
+
+| /api/login | | |
+| ---- | ---- | ---- |
+| POST | | Retourne un token pour le nickname et le mot de passe envoyé s'ils sont corrects. |
+
+| /api/signup | | |
+| ---- | ---- | ---- |
+| POST | | Ajoute un nouvel utilisateur. |
+
+| /api/users | | |
+| ---- | ---- | ---- |
+| GET | authentifié | Retourne la liste des utilisateurs |
+| POST | admin | ajoute un utilisateur pouvant être administrateur |
+
+| /api/users/_\<userId\>_ | | |
+| ---- | ---- | ---- |
+| GET | authentifié | Retourne les détails de l'utilisateur spécifié. |
+| PUT | authentifié | Met à jour l'utilisateur (si le token correspond au même utilisateur) |
+
+| /api/events | | |
+| ---- | ---- | ---- |
+| GET | | Retourne la liste des events |
+| POST | authentifié | ajoute un évent |
+| DELETE | admin | supprime tous les évents. |
+
+| /api/events/_\<eventId\>_ | | |
+| ---- | ---- | ---- |
+| GET | | Retourne les détails de l'évent précisé. |
+| PUT | authentifié | met à jour l'évènement s'il appartient à cet utilisateur |
+| DELETE | authentifié | supprime l'évènement s'il appartient à cet utilisateur |
+
+| /api/locations | | |
+| ---- | ---- | ---- |
+| GET | | Retourne la liste des lieux |
+| POST | authentifié | ajoute un lieu |
+| DELETE | admin | Supprime tous les lieux |
+
+| /api/locations/_\<locationId\>_ | | |
+| ---- | ---- | ---- |
+| GET | | Retourne les détails du lieu précisé. |
+| PUT | authentifié | Met à jour un lieu s'il appartient à cet utilisateur |
+| DELETE | authentifié | Supprime un lieu s'il appartient à cet utilisateur |
 
 API Models
 -----------
