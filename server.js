@@ -17,8 +17,6 @@ app.set('secretKey', config.secret);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-
-
 var apiRoutes = express.Router();
 var routes = require('./api/routes/routes');
 routes(apiRoutes);

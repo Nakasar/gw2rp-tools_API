@@ -4,6 +4,8 @@ module.exports = function(router) {
   var events = require('../controllers/eventsController');
   var locations = require('../controllers/locationsController');
 
+  router.route('/setup').post(users.create_admin);
+
   // Accessible without authentification
   router.route('/login').post(users.login_user);
   router.route('/signup').post(users.create_user);

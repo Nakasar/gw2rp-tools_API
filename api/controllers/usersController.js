@@ -2,7 +2,30 @@
 
 var mongoose = require('mongoose'),
   User = mongoose.model('Users'),
-  jwt = require('jsonwebtoken');
+  jwt = require('jsonwebtoken'),
+  bcrypt = require('bcryptjs');
+
+exports.create_admin = function(req, res) {
+  var nakasar = new User({
+    nick_name: 'Nakasar',
+    password: 'password',
+    admin: true,
+    gw2_account: 'Nakasar',
+    gw2_id: 5192,
+    email: 'nakasar@outlook.fr'
+  })
+
+  bcrypt.hash('password', 8, function(err, hash) {
+    nakasar.password = hash;
+
+    nakasar.save(function(err)   {
+      if(err) {
+        res.json(err);
+      }
+      res.json({ success: true });
+    })
+  });
+}
 
 exports.list_all_users = function(req, res) {
   User.find({}, "_id nick_name gw2_account gw2_id register_date", function(err, users) {
@@ -14,12 +37,19 @@ exports.list_all_users = function(req, res) {
 };
 
 exports.create_user = function(req, res) {
-  var new_user = new User(req.body);
-  new_user.save(function(err, user) {
-    if (err) {
-      res.send(err);
+  bcrypt.hash(req.body.password, 8, function(error, hash) {
+    if (error) {
+      res.json({ success: false, message: "Could not create error (Password error)." });
+    } else {
+      var new_user = new User(req.body);
+      new_user.password = hash;
+      new_user.save(function(err, user) {
+        if (err) {
+          res.send(err);
+        }
+        res.json(user);
+      });
     }
-    res.json(user);
   });
 };
 
@@ -74,7 +104,7 @@ exports.delete_user = function(req, res) {
 };
 
 exports.login_user = function(req, res) {
-  User.findOne({nick_name: req.body.nick_name}, function(err, user) {
+  User.findOne({ nick_name: req.body.nick_name }, function(err, user) {
     if (err) {
       res.send(err);
     }
@@ -83,21 +113,25 @@ exports.login_user = function(req, res) {
       res.json({ success: false, message: 'User not found.'});
     } else if (user) {
       // check password
-      if (user.password != req.body.password) {
-        res.json({ success: false, message: 'Bad credidentials.' });
-      } else {
-        //create token
-        const payload = { admin: user.admin, user_id: user._id };
-        var token = jwt.sign(payload, req.app.settings.secretKey, {
-          expiresIn: 86400 // 24 hours
-        });
+      bcrypt.compare(req.body.password, user.password, function(error, result) {
+        if (error) {
+          res.json({ success: false, message: 'Auth error.' });
+        } else if (result) {
+          //create token
+          const payload = { admin: user.admin, user_id: user._id };
+          var token = jwt.sign(payload, req.app.settings.secretKey, {
+            expiresIn: 86400 // 24 hours
+          });
 
-        res.json({
-          success: true,
-          message: 'User logged in',
-          token: token
-        });
-      }
+          res.json({
+            success: true,
+            message: 'User logged in',
+            token: token
+          });
+        } else {
+          res.json({ success: false, message: 'Bad credidentials.' });
+        }
+      });
     }
   });
 };
