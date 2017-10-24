@@ -26,4 +26,10 @@ module.exports = function(router) {
   // Locations Routes
   router.route('/locations').post(locations.create_location);
   router.route('/locations/:locationId').put(locations.update_location).delete(locations.delete_location);
+
+  router.use(users.check_admin);
+
+  router.route('/users').delete(users.delete_all);
+  router.route('/locations').delete(locations.delete_all);
+  router.route('/events').delete(events.delete_all);
 }

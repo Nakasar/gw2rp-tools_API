@@ -45,6 +45,13 @@ var EventSchema = new Schema({
   category: {
     type: String,
     default: 'event'
+  },
+  difficulty: {
+    type: {
+      type: String,
+      enum: ['peaceful', 'easy', 'normal', 'difficult', 'hardcore']
+    },
+    default:  ['normal']
   }
 });
 

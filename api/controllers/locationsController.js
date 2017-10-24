@@ -36,7 +36,7 @@ exports.update_location = function(req, res) {
     if (err) {
       res.send(err);
     } else {
-      if (location.owner === req.decoded.user_id || req.decoded.admin) {
+      if (location.owner.equals(req.decoded.user_id) || req.decoded.admin) {
         Location.findOneAndUpdate({_id: req.params.locationId}, req.body, {new: true}, function(err, location) {
           if (err) {
             res.send(err);
@@ -62,7 +62,7 @@ exports.delete_location = function(req, res) {
     if (err) {
       res.send(err);
     } else {
-      if (location.owner === req.decoded.user_id || req.decoded.admin) {
+      if (location.owner.equals(req.decoded.user_id) || req.decoded.admin) {
         Location.remove({
           _id: req.params.locationId
         }, function(err, location) {
@@ -74,6 +74,16 @@ exports.delete_location = function(req, res) {
       } else {
         res.json({ success: false, message: 'You are not the owner of this location.'})
       }
+    }
+  });
+};
+
+exports.delete_all = function(req, res) {
+  Location.remove({}, function(err) {
+    if (err) {
+      res.json({ success: false, message: "Error while trying to whipe the location database."});
+    } else {
+      res.json({ success: true, message: "Location database whiped."});
     }
   });
 };

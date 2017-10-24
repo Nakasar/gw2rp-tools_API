@@ -5,7 +5,7 @@ var mongoose = require('mongoose'),
   jwt = require('jsonwebtoken');
 
 exports.list_all_users = function(req, res) {
-  User.find({}, function(err, users) {
+  User.find({}, "_id nick_name gw2_account gw2_id register_date", function(err, users) {
     if (err) {
       res.send(err);
     }
@@ -24,7 +24,7 @@ exports.create_user = function(req, res) {
 };
 
 exports.read_user = function(req, res) {
-  User.findById(req.params.userId, function(err, user) {
+  User.findById(req.params.userId, "_id nick_name gw2_account gw2_id register_date", function(err, user) {
     if (err) {
       res.send(err);
     }
@@ -33,22 +33,43 @@ exports.read_user = function(req, res) {
 };
 
 exports.update_user = function(req, res) {
-  User.findOneAndUpdate({_id: req.params.userId}, req.body, {new: true}, function(err, user) {
+  User.findById(req.params.userId, function(err, user) {
     if (err) {
       res.send(err);
+    } else {
+      if (user._id.equals(req.decoded.user_id) || req.decoded.admin) {
+        User.findOneAndUpdate({_id: req.params.userId}, req.body, {new: true}, function(err, user) {
+          if (err) {
+            res.send(err);
+          };
+          res.json(user);
+        });
+      } else {
+        res.json({ success: false, message: 'You can not update someone else account.'});
+      }
     }
-    res.json(user);
   });
 };
 
 exports.delete_user = function(req, res) {
-  User.remove({
-    _id: req.params.userId
-  }, function(err, user) {
+  User.findById(req.params.userId, function(err, user) {
     if (err) {
       res.send(err);
+    } else {
+      console.error(user._id + " " + req.decoded.user_id);
+      if (user._id.equals(req.decoded.user_id) || req.decoded.admin) {
+        User.remove({
+          _id: req.params.userId
+        }, function(err, user) {
+          if (err) {
+            res.send(err);
+          }
+          res.json({ message: 'User successfully deleted' });
+        });
+      } else {
+        res.json({ success: false, message: 'You can not delete someone else account.'})
+      }
     }
-    res.json({ message: 'User successfully deleted' });
   });
 };
 
@@ -99,4 +120,25 @@ exports.check_token = function(req, res, next) {
       message: 'Invalid authentification.'
     });
   }
+};
+
+exports.check_admin = function(req, res, next) {
+  if (req.decoded.admin) {
+    next();
+  } else {
+    return res.status(403).send({
+      success: false,
+      message: 'Access denied.'
+    });
+  }
+};
+
+exports.delete_all = function(req, res) {
+  User.remove({}, function(err) {
+    if (err) {
+      res.json({ success: false, message: "Error while trying to whipe the user database."});
+    } else {
+      res.json({ success: true, message: "User database whiped."});
+    }
+  });
 };

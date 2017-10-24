@@ -36,7 +36,7 @@ exports.update_event = function(req, res) {
     if (err) {
       res.send(err);
     } else {
-      if (event.owner === req.decoded.user_id || req.decoded.admin) {
+      if (event.owner.equals(req.decoded.user_id) || req.decoded.admin) {
         Event.findOneAndUpdate({_id: req.params.eventId}, req.body, {new: true}, function(err, event) {
           if (err) {
             res.send(err);
@@ -55,7 +55,7 @@ exports.delete_event = function(req, res) {
     if (err) {
       res.send(err);
     } else {
-      if (event.owner === req.decoded.user_id || req.decoded.admin) {
+      if (event.owner.equals(req.decoded.user_id) || req.decoded.admin) {
         Event.remove({
           _id: req.params.eventId
         }, function(err, event) {
@@ -67,6 +67,16 @@ exports.delete_event = function(req, res) {
       } else {
         res.json({ success: false, message: 'You are not the owner of this event.'})
       }
+    }
+  });
+};
+
+exports.delete_all = function(req, res) {
+  Event.remove({}, function(err) {
+    if (err) {
+      res.json({ success: false, message: "Error while trying to whipe the event database."});
+    } else {
+      res.json({ success: true, message: "Event database whiped."});
     }
   });
 };
