@@ -6,6 +6,10 @@ Utilisation
 Il est possible d'obtenir la liste des évènements à l'adresse `/api/events` (requête GET). L'adresse `/api/events/<eventId>` permet d'obtenir les détails sur un évènement particulier.  
 La liste des lieux s'obtient à l'adresse `/api/events` (requête GET).  L'adresse `/api/locations/<locationId>` permet d'obtenir les détails sur un lieux particulier.  
 
+| /api/me | | |
+| ---- | ---- | ---- |
+| POST | | Vérifie la validité du token vis à vis de l'utilisateur renseigné. |
+
 | /api/login | | |
 | ---- | ---- | ---- |
 | POST | | Retourne un token pour le nickname et le mot de passe envoyé s'ils sont corrects. |
