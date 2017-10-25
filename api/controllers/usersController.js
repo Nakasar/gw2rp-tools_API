@@ -3,7 +3,9 @@
 var mongoose = require('mongoose'),
   User = mongoose.model('Users'),
   jwt = require('jsonwebtoken'),
-  bcrypt = require('bcryptjs');
+  bcrypt = require('bcryptjs'),
+  nodemailer = require('nodemailer'),
+  config = require('../../config');
 
 exports.create_admin = function(req, res) {
   var nakasar = new User({
@@ -32,34 +34,73 @@ exports.list_all_users = function(req, res) {
     if (err) {
       res.send(err);
     }
-    res.json(users);
+    res.json({ success: true, users: users });
   });
 };
 
 exports.create_user = function(req, res) {
-  bcrypt.hash(req.body.password, 8, function(error, hash) {
-    if (error) {
-      res.json({ success: false, message: "Could not create error (Password error)." });
-    } else {
-      var new_user = new User(req.body);
-      new_user.password = hash;
-      new_user.save(function(err, user) {
-        if (err) {
-          res.send(err);
-        }
-        res.json(user);
-      });
-    }
-  });
+  // Data Validation
+  var username_regex = /^([a-zA-Z0-9]{2,20})$/;
+  var password_regex = (/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/);
+  var email_regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  var gw2_account = req.body.gw2_account + "." + req.body.gw2_id;
+  var gw2_account_regex = /^([a-zA-Z]{1,}\.[0-9]{4})$/;
+  if (!req.body.nick_name || !username_regex.test(req.body.nick_name)) {
+    // Validate username
+    res.json({ success: false, message: "User is not correct (alphanumeric characters, maximum length is 20).", code: "REG-06" });
+  } else if (!req.body.password || !password_regex.test(req.body.password)) {
+    // Validate password
+    res.json({ success: false, message: "Password is not correct.", code: "REG-02" });
+  } else if (!req.body.email || !email_regex.test(req.body.email)) {
+    // Validate email
+    res.json({ success: false, message: "Email is not correct.", code: "REG-03" });
+  } else if (!gw2_account_regex.test(gw2_account)) {
+    // Validate gw2_account
+    res.json({ success: false, message: "GW2 Account is not correct (format: Nakasar.5192).", code: "REG-04" });
+  } else {
+    bcrypt.hash(req.body.password, 8, function(error, hash) {
+      if (error) {
+        res.json({ success: false, message: "Could not create error (Password error).", code: "REG-05" });
+      } else {
+        User.findOne({ nick_name: req.body.nick_name}, function(err, user) {
+          if (err) {
+              res.json({ success: false, message: "Unkown error", code: "REG-00"});
+          } else if (user) {
+            res.json({ success: false, message: "User already exists.", code: "REG-01"});
+          } else {
+            var new_user = new User(req.body);
+            new_user.password = hash;
+            new_user.save(function(err, user) {
+              if (err) {
+                res.json({ success: false, message: err });
+              }
+
+              res.json({ success: true, user: { nick_name: user.nick_name }, message: "Check email for verification." });
+            });
+          }
+        });
+      }
+    });
+  }
 };
 
 exports.read_user = function(req, res) {
-  User.findById(req.params.userId, "_id nick_name gw2_account gw2_id register_date", function(err, user) {
-    if (err) {
-      res.send(err);
-    }
-    res.json(user);
-  });
+  // check for id forumactif
+  var id_regex = /^([a-z0-9]{1,40})$/;
+  if (!id_regex.test(req.params.userId)) {
+    res.json({ success: false, message: "Id is not correct", code: "USR-01" });
+  } else {
+    User.findById(req.params.userId, "_id nick_name gw2_account gw2_id register_date", function(err, user) {
+      if (err) {
+        res.json({ success: false, message: err });
+      }
+      if (user) {
+        res.json({ success: true, user: user });
+      } else {
+        res.json({ success: false, message: "No user with such ID.", code: "USR-02" });
+      }
+    });
+  }
 };
 
 exports.update_user = function(req, res) {
@@ -72,7 +113,7 @@ exports.update_user = function(req, res) {
           if (err) {
             res.send(err);
           };
-          res.json(user);
+          res.json({ success: true, user: user });
         });
       } else {
         res.json({ success: false, message: 'You can not update someone else account.'});
@@ -92,9 +133,9 @@ exports.delete_user = function(req, res) {
           _id: req.params.userId
         }, function(err, user) {
           if (err) {
-            res.send(err);
+            res.json({ success: false, error: err });
           }
-          res.json({ message: 'User successfully deleted' });
+          res.json({ success: true, message: 'User successfully deleted' });
         });
       } else {
         res.json({ success: false, message: 'You can not delete someone else account.'})
@@ -126,7 +167,13 @@ exports.login_user = function(req, res) {
           res.json({
             success: true,
             message: 'User logged in',
-            token: token
+            token: token,
+            user: {
+              nick_name: user.nick_name,
+              id: user._id,
+              admin: user.admin,
+              email: user.email
+            }
           });
         } else {
           res.json({ success: false, message: 'Bad credidentials.' });
@@ -135,6 +182,41 @@ exports.login_user = function(req, res) {
     }
   });
 };
+
+/*
+  Checks if a given token is correct for the given user.
+  req : id and token
+*/
+exports.is_logged = function(req, res) {
+  var token = req.body.token;
+
+  if (!req.body.id || !token) {
+    return res.json({ success: false, message: "Incomplete data (missing id and token).", code: "LOG-001" });
+  } else {
+    jwt.verify(token, req.app.settings.secretKey, function(err, decoded) {
+      if (err) {
+        return res.json({ success: false, message: 'Invalid token.', code: "LOG-002" });
+      } else {
+        req.decoded = decoded;
+        if (req.decoded.user_id === req.body.id) {
+          User.findOne({ _id: req.decoded.user_id }, function(err, user) {
+            if (err) {
+              res.json({ success: false, message: err });
+            }
+
+            if(!user) {
+              res.json({ success: false, message: 'User not found.'});
+            } else if (user) {
+              return res.json({ success: true, message: 'User logged in.', user: { id: user._id, nick_name: user.nick_name, admin: user.admin } });
+            }
+          });
+        } else {
+          return res.json({ success: false, message: 'Invalid token.', code: "LOG-002" });
+        }
+      }
+    });
+  }
+}
 
 exports.check_token = function(req, res, next) {
   var token = req.body.token || req.query.token || req.headers['x-access-token'];

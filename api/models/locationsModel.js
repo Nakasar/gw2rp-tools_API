@@ -23,7 +23,7 @@ var LocationSchema = new Schema({
     type: String,
     required: 'Location should have coordinates'
   },
-  type: {
+  types: {
     type: String,
     required: 'Location should have a type'
   },

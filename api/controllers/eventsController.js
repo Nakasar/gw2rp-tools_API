@@ -36,7 +36,7 @@ exports.update_event = function(req, res) {
     if (err) {
       res.send(err);
     } else {
-      if (event.owner.equals(req.decoded.user_id) || req.decoded.admin) {
+      if (event.owner === req.decoded.user_id || req.decoded.admin) {
         Event.findOneAndUpdate({_id: req.params.eventId}, req.body, {new: true}, function(err, event) {
           if (err) {
             res.send(err);
@@ -55,7 +55,7 @@ exports.delete_event = function(req, res) {
     if (err) {
       res.send(err);
     } else {
-      if (event.owner.equals(req.decoded.user_id) || req.decoded.admin) {
+      if (event.owner === req.decoded.user_id || req.decoded.admin) {
         Event.remove({
           _id: req.params.eventId
         }, function(err, event) {
