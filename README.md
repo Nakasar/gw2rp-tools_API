@@ -72,8 +72,8 @@ API Models
 | created\_at | Date | date d'enregistrement de l'évent |
 | icon | String | nom de l'icône à afficher pour l'évent |
 | owner | String | ID de l'utilisateur qui a enregistré l'évent |
-| coord | String | Coordonnées de l'évent dans le monde, de la forme '[x, y]' |
-| type | String | Type de l'évènement |
+| coord | String | Coordonnées de l'évent dans le monde, de la forme '\[x, y\]' |
+| types | \[String\] | Typse de l'évènement |
 | description | String | Description de l'évènement |
 | contact | String | Personne à contacter en jeu pour avoir plus d'informations. |
 | site | String | Adresse optionnelle d'un site web. |
@@ -88,8 +88,8 @@ API Models
 | created\_at | Date | date d'enregistrement de l'évent |
 | icon | String | nom de l'icône à afficher pour l'évent |
 | owner | String | ID de l'utilisateur qui a enregistré l'évent |
-| coord | String | Coordonnées de l'évent dans le monde, de la forme '[x, y]' |
-| type | String | Type de l'évènement |
+| coord | String | Coordonnées de l'évent dans le monde, de la forme '\[x, y\]' |
+| types | \[String\] | Types de l'évènement |
 | description | String | Description de l'évènement |
 | contact | String | Personne à contacter en jeu pour avoir plus d'informations. |
 | site | String | Adresse optionnelle d'un site web. |
