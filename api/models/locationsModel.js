@@ -13,7 +13,8 @@ var LocationSchema = new Schema({
   },
   icon: {
     type: String,
-    required: 'Location should have an icon'
+    required: 'Location should have an icon',
+    default: 'divers'
   },
   owner: {
     type: String,
@@ -24,8 +25,8 @@ var LocationSchema = new Schema({
     required: 'Location should have coordinates'
   },
   types: {
-    type: String,
-    required: 'Location should have a type'
+    type: [String],
+    required: 'Location should have one or several types'
   },
   description: {
     type: String,

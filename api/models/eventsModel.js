@@ -13,7 +13,8 @@ var EventSchema = new Schema({
   },
   icon: {
     type: String,
-    required: 'Event should have an icon'
+    required: 'Event should have an icon',
+    default: 'générique'
   },
   owner: {
     type: String,
@@ -23,9 +24,9 @@ var EventSchema = new Schema({
     type: String,
     required: 'Event should have coordinates'
   },
-  type: {
-    type: String,
-    required: 'Event should have a type'
+  types: {
+    type: [String],
+    required: 'Event should have one or several types'
   },
   description: {
     type: String,
@@ -47,11 +48,10 @@ var EventSchema = new Schema({
     default: 'event'
   },
   difficulty: {
-    type: {
-      type: String,
-      enum: ['peaceful', 'easy', 'normal', 'difficult', 'hardcore']
-    },
-    default:  ['normal']
+    type: String,
+    enum: ['peaceful', 'easy', 'normal', 'difficult', 'hardcore'],
+    default: 'normal',
+    required: true
   }
 });
 

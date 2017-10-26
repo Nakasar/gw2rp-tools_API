@@ -22,9 +22,9 @@ exports.create_admin = function(req, res) {
 
     nakasar.save(function(err)   {
       if(err) {
-        res.json(err);
+        return res.json(err);
       }
-      res.json({ success: true });
+      return res.json({ success: true });
     })
   });
 }
@@ -32,9 +32,9 @@ exports.create_admin = function(req, res) {
 exports.list_all_users = function(req, res) {
   User.find({}, "_id nick_name gw2_account gw2_id register_date", function(err, users) {
     if (err) {
-      res.send(err);
+      return res.send(err);
     }
-    res.json({ success: true, users: users });
+    return res.json({ success: true, users: users });
   });
 };
 
@@ -47,35 +47,35 @@ exports.create_user = function(req, res) {
   var gw2_account_regex = /^([a-zA-Z]{1,}\.[0-9]{4})$/;
   if (!req.body.nick_name || !username_regex.test(req.body.nick_name)) {
     // Validate username
-    res.json({ success: false, message: "User is not correct (alphanumeric characters, maximum length is 20).", code: "REG-06" });
+    return res.json({ success: false, message: "User is not correct (alphanumeric characters, maximum length is 20).", code: "REG-06" });
   } else if (!req.body.password || !password_regex.test(req.body.password)) {
     // Validate password
-    res.json({ success: false, message: "Password is not correct.", code: "REG-02" });
+    return res.json({ success: false, message: "Password is not correct.", code: "REG-02" });
   } else if (!req.body.email || !email_regex.test(req.body.email)) {
     // Validate email
-    res.json({ success: false, message: "Email is not correct.", code: "REG-03" });
+    return res.json({ success: false, message: "Email is not correct.", code: "REG-03" });
   } else if (!gw2_account_regex.test(gw2_account)) {
     // Validate gw2_account
-    res.json({ success: false, message: "GW2 Account is not correct (format: Nakasar.5192).", code: "REG-04" });
+    return res.json({ success: false, message: "GW2 Account is not correct (format: Nakasar.5192).", code: "REG-04" });
   } else {
     bcrypt.hash(req.body.password, 8, function(error, hash) {
       if (error) {
-        res.json({ success: false, message: "Could not create error (Password error).", code: "REG-05" });
+        return res.json({ success: false, message: "Could not create error (Password error).", code: "REG-05" });
       } else {
         User.findOne({ nick_name: req.body.nick_name}, function(err, user) {
           if (err) {
-              res.json({ success: false, message: "Unkown error", code: "REG-00"});
+              return res.json({ success: false, message: "Unkown error", code: "REG-00"});
           } else if (user) {
-            res.json({ success: false, message: "User already exists.", code: "REG-01"});
+            return res.json({ success: false, message: "User already exists.", code: "REG-01"});
           } else {
             var new_user = new User(req.body);
             new_user.password = hash;
             new_user.save(function(err, user) {
               if (err) {
-                res.json({ success: false, message: err });
+                return res.json({ success: false, message: err });
               }
 
-              res.json({ success: true, user: { nick_name: user.nick_name }, message: "Check email for verification." });
+              return res.json({ success: true, user: { nick_name: user.nick_name }, message: "Check email for verification." });
             });
           }
         });
@@ -88,16 +88,16 @@ exports.read_user = function(req, res) {
   // check for id forumactif
   var id_regex = /^([a-z0-9]{1,40})$/;
   if (!id_regex.test(req.params.userId)) {
-    res.json({ success: false, message: "Id is not correct", code: "USR-01" });
+    return res.json({ success: false, message: "Id is not correct", code: "USR-01" });
   } else {
     User.findById(req.params.userId, "_id nick_name gw2_account gw2_id register_date", function(err, user) {
       if (err) {
-        res.json({ success: false, message: err });
+        return res.json({ success: false, message: err });
       }
       if (user) {
-        res.json({ success: true, user: user });
+        return res.json({ success: true, user: user });
       } else {
-        res.json({ success: false, message: "No user with such ID.", code: "USR-02" });
+        return res.json({ success: false, message: "No user with such ID.", code: "USR-02" });
       }
     });
   }
@@ -106,17 +106,17 @@ exports.read_user = function(req, res) {
 exports.update_user = function(req, res) {
   User.findById(req.params.userId, function(err, user) {
     if (err) {
-      res.send(err);
+      return res.send(err);
     } else {
       if (user._id.equals(req.decoded.user_id) || req.decoded.admin) {
         User.findOneAndUpdate({_id: req.params.userId}, req.body, {new: true}, function(err, user) {
           if (err) {
-            res.send(err);
+            return res.send(err);
           };
-          res.json({ success: true, user: user });
+          return res.json({ success: true, user: user });
         });
       } else {
-        res.json({ success: false, message: 'You can not update someone else account.'});
+        return res.json({ success: false, message: 'You can not update someone else account.'});
       }
     }
   });
@@ -125,7 +125,7 @@ exports.update_user = function(req, res) {
 exports.delete_user = function(req, res) {
   User.findById(req.params.userId, function(err, user) {
     if (err) {
-      res.send(err);
+      return res.send(err);
     } else {
       console.error(user._id + " " + req.decoded.user_id);
       if (user._id.equals(req.decoded.user_id) || req.decoded.admin) {
@@ -133,12 +133,12 @@ exports.delete_user = function(req, res) {
           _id: req.params.userId
         }, function(err, user) {
           if (err) {
-            res.json({ success: false, error: err });
+            return res.json({ success: false, error: err });
           }
-          res.json({ success: true, message: 'User successfully deleted' });
+          return res.json({ success: true, message: 'User successfully deleted' });
         });
       } else {
-        res.json({ success: false, message: 'You can not delete someone else account.'})
+        return res.json({ success: false, message: 'You can not delete someone else account.'})
       }
     }
   });
@@ -147,16 +147,16 @@ exports.delete_user = function(req, res) {
 exports.login_user = function(req, res) {
   User.findOne({ nick_name: req.body.nick_name }, function(err, user) {
     if (err) {
-      res.send(err);
+      return res.send(err);
     }
 
     if(!user) {
-      res.json({ success: false, message: 'User not found.'});
+      return res.json({ success: false, message: 'User not found.'});
     } else if (user) {
       // check password
       bcrypt.compare(req.body.password, user.password, function(error, result) {
         if (error) {
-          res.json({ success: false, message: 'Auth error.' });
+          return res.json({ success: false, message: 'Auth error.' });
         } else if (result) {
           //create token
           const payload = { admin: user.admin, user_id: user._id };
@@ -176,7 +176,7 @@ exports.login_user = function(req, res) {
             }
           });
         } else {
-          res.json({ success: false, message: 'Bad credidentials.' });
+          return res.json({ success: false, message: 'Bad credidentials.' });
         }
       });
     }
@@ -252,9 +252,9 @@ exports.check_admin = function(req, res, next) {
 exports.delete_all = function(req, res) {
   User.remove({}, function(err) {
     if (err) {
-      res.json({ success: false, message: "Error while trying to whipe the user database."});
+      return res.json({ success: false, message: "Error while trying to whipe the user database."});
     } else {
-      res.json({ success: true, message: "User database whiped."});
+      return res.json({ success: true, message: "User database whiped."});
     }
   });
 };
