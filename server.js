@@ -7,7 +7,8 @@ var express = require('express'),
   User = require('./api/models/usersModel'),
   bodyParser = require('body-parser'),
   config = require('./config'),
-  jwt = require('jsonwebtoken');
+  jwt = require('jsonwebtoken'),
+  cors = require('cors');
 
 // mongoose connection
 mongoose.Promise = global.Promise;
@@ -17,23 +18,7 @@ app.set('secretKey', config.secret);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use(function(req, res, next) {
-  // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', '*');
-
-  // Request methods you wish to allow
-  res.setHeader('Access-Control-Allow-Methods',  "GET, POST, OPTIONS, PUT, DELETE");
-
-  // Request headers you wish to allow
-  res.setHeader('Access-Control-Allow-Headers', '*');
-
-  // Set to true if you need the website to include cookies in the requests sent
-  // to the API (e.g. in case you use sessions)
-  res.setHeader('Access-Control-Allow-Credentials', true);
-
-  // Pass to next layer of middleware
-  next();
-});
+app.use(cors());
 
 var apiRoutes = express.Router();
 var routes = require('./api/routes/routes');
