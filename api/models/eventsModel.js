@@ -41,7 +41,7 @@ var EventSchema = new Schema({
     default: ''
   },
   end_date: {
-    type: Date,
+    type: Date
   },
   category: {
     type: String,

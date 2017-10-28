@@ -2,13 +2,30 @@
 
 var mongoose = require('mongoose'), Event = mongoose.model('Events');
 
+const digit_regex = /^([0-9]{1,2})$/;
+
 exports.list_all_events = function(req, res) {
-  Event.find({}, function(err, event) {
-    if (err) {
-      return res.json({ success: false, message: err });
+  // Check for request params, and act depending on.
+
+  if (req.query.next) {
+    if (digit_regex.test(req.query.next)) {
+      Event.find({ end_date : { $gt: Date.now() } }).limit(parseInt(req.query.next)).sort({ end_date: 1 }).exec(function(err, events) {
+        if (err) {
+          return res.json({ success: false, message: err });
+        }
+        res.statusCode = 200;
+        return res.json({ success: true, events: events });
+      });
     }
-    return res.json({ success: true, events: event });
-  });
+  } else {
+    Event.find({}, function(err, event) {
+      if (err) {
+        return res.json({ success: false, message: err });
+      }
+      res.statusCode = 200;
+      return res.json({ success: true, events: event });
+    });
+  }
 };
 
 exports.create_event = function(req, res) {
