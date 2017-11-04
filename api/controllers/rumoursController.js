@@ -2,13 +2,27 @@
 
 var mongoose = require('mongoose'), Rumour = mongoose.model('Rumours');
 
+const digit_regex = /^([0-9]{1,2})$/;
+
 exports.list_all_rumours = function(req, res) {
-  Rumour.find({}, function(err, rumour) {
-    if (err) {
-      return res.json({ success: false, message: err });
+  if (req.query.latest) {
+    if (digit_regex.test(req.query.latest)) {
+      Rumour.find({ }).limit(parseInt(req.query.latest)).sort({ created_date: -1 }).exec(function(err, rumours) {
+        if (err) {
+          return res.json({ success: false, message: err });
+        }
+        res.statusCode = 200;
+        return res.json({ success: true, rumours: rumours });
+      });
     }
-    return res.json({ success: true, rumours: rumour });
-  });
+  } else {
+    Rumour.find({}, function(err, rumour) {
+      if (err) {
+        return res.json({ success: false, message: err });
+      }
+      return res.json({ success: true, rumours: rumour });
+    });
+  }
 };
 
 exports.create_rumour = function(req, res) {
