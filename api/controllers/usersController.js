@@ -104,22 +104,93 @@ exports.read_user = function(req, res) {
 };
 
 exports.update_user = function(req, res) {
-  User.findById(req.params.userId, function(err, user) {
-    if (err) {
-      return res.send(err);
+  var username_regex = /^([a-zA-Z0-9]{2,20})$/;
+  var password_regex = (/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/);
+  var email_regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  var gw2_account = req.body.gw2_account;
+  var gw2_account_regex = /^([a-zA-Z]{1,}\.[0-9]{4})$/;
+
+  if (req.query.general) {
+    // Update username and gw2_account
+    if (!req.body.nick_name || !username_regex.test(req.body.nick_name)) {
+      // Validate username
+      return res.json({ success: false, message: "User is not correct (alphanumeric characters, maximum length is 20).", code: "UPDU-06" });
+    } else if (!gw2_account_regex.test(gw2_account)) {
+      // Validate gw2_account
+      return res.json({ success: false, message: "GW2 Account is not correct (format: Nakasar.5192).", code: "UPDU-04" });
     } else {
-      if (user._id.equals(req.decoded.user_id) || req.decoded.admin) {
-        User.findOneAndUpdate({_id: req.params.userId}, req.body, {new: true}, function(err, user) {
-          if (err) {
-            return res.send(err);
-          };
-          return res.json({ success: true, user: user });
-        });
-      } else {
-        return res.json({ success: false, message: 'You can not update someone else account.'});
-      }
+      User.findOne({ _id: req.params.userId}, function(err, user) {
+        if (err) {
+          return res.json({ success: false, message: "Unkown error", code: "UPDU-00"});
+        } else if (user) {
+          if (user._id == req.decoded.user_id) {
+            // Update this user.
+            user.nick_name = req.body.nick_name;
+            user.gw2_account = req.body.gw2_account.split(".")[0];
+            user.gw2_id = req.body.gw2_account.split(".")[1];
+            user.save(function(err, user) {
+              if (err) {
+                return res.json({ success: false, message: "Unkown error", code: "UPDU-00"});
+              } else {
+                return res.json({ success: true });
+              }
+            });
+          } else {
+            return res.json({ success: false, message: "This username is already used.", code: "UPDU-01"});
+          }
+        } else {
+          return res.json({ success: false, message: "This account does not exist.", code: "UPDU-02"});
+        }
+      });
     }
-  });
+  } else if (req.query.security) {
+    if (!req.body.new_password || !password_regex.test(req.body.new_password)) {
+      // Validate password
+      return res.json({ success: false, message: "Password is not correct.", code: "UPDU-05" });
+    } else {
+      User.findOne({ _id: req.params.userId}, function(err, user) {
+        if (err) {
+          return res.json({ success: false, message: "Unkown error", code: "UPDU-00"});
+        } else if (user) {
+          if (user._id == req.decoded.user_id) {
+            // Update this user.
+
+            // Check password1
+            bcrypt.compare(req.body.old_password, user.password, function(error, result) {
+              if (error) {
+                return res.json({ success: false, message: "Unkown error", code: "UPDU-12"});
+              } else if (result) {
+                // Update password
+                bcrypt.hash(req.body.new_password, 8, function(error, hash) {
+                  if (error) {
+                    return res.json({ success: false, message: "Could not create password (Password error).", code: "UPDU-10" });
+                  } else {
+                    user.password = hash;
+                    user.save(function (er, re) {
+                      if (err) {
+                        return res.json({ success: false, message: "Unkown error", code: "UPDU-13"});
+                      } else {
+                        return res.json({ success: true, message: "Password updated." });
+                      }
+                    });
+                  }
+                });
+              } else {
+                return res.json({ success: false, message: "Incorrect old password.", code: "UPDU-11"});
+              }
+            });
+
+          } else {
+            return res.json({ success: false, message: "You can only update your own account.", code: "UPDU-15"});
+          }
+        } else {
+          return res.json({ success: false, message: "This account does not exist.", code: "UPDU-02"});
+        }
+      });
+    }
+  } else {
+    return res.json({ success: false, message: "Wrong declaration of parameters (password or general)."})
+  }
 };
 
 exports.delete_user = function(req, res) {
