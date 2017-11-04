@@ -31,7 +31,7 @@ module.exports = function(router) {
 
   // Locations Routes
   router.route('/locations').post(locations.create_location);
-  router.route('/locations/:rumours').put(locations.update_location).delete(locations.delete_location);
+  router.route('/locations/:locationId').put(locations.update_location).delete(locations.delete_location);
 
   // Rumours Routes
   router.route('/rumours').post(rumours.create_rumour);

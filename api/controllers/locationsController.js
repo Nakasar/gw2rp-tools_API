@@ -57,7 +57,7 @@ exports.delete_location = function(req, res) {
   Location.findById(req.params.locationId, function(err, location) {
     if (err) {
       return res.send(err);
-    } else {
+    } else if (location) {
       if (location.owner === req.decoded.user_id || req.decoded.admin) {
         Location.remove({
           _id: req.params.locationId
@@ -70,6 +70,8 @@ exports.delete_location = function(req, res) {
       } else {
         return res.json({ success: false, message: 'You are not the owner of this location.'})
       }
+    } else {
+      return res.json({ success: false, message: 'No location with this ID.'})
     }
   });
 };
