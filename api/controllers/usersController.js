@@ -104,7 +104,7 @@ exports.read_user = function(req, res) {
 };
 
 exports.update_user = function(req, res) {
-  var username_regex = /^([a-zA-Z0-9]{2,20})$/;
+  var username_regex = /^([a-zA-Z0-9 ]{2,20})$/;
   var password_regex = (/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/);
   var email_regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   var gw2_account = req.body.gw2_account;
