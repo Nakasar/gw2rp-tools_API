@@ -3,11 +3,26 @@
 var mongoose = require('mongoose'), Event = mongoose.model('Events');
 
 const digit_regex = /^([0-9]{1,2})$/;
+const string_regex = /^([a-z]{1,})$/;
 
 exports.list_all_events = function(req, res) {
   // Check for request params, and act depending on.
-
-  if (req.query.next) {
+  if (req.query.types) {
+    var query = [];
+    req.query.types.forEach(function (type) {
+      if (string_regex.test(type)) {
+        query.push({ types: type });
+      }
+    });
+    Event.find({ $or : query }).exec(function(err, events) {
+      if (err) {
+        return res.json({ success: false, message: err });
+      } else {
+        res.statusCode = 200;
+        return res.json({ success: true, events: events });
+      }
+    });
+  } else if (req.query.next) {
     if (digit_regex.test(req.query.next)) {
       Event.find({ end_date : { $gt: Date.now() } }).limit(parseInt(req.query.next)).sort({ end_date: 1 }).exec(function(err, events) {
         if (err) {
@@ -16,6 +31,8 @@ exports.list_all_events = function(req, res) {
         res.statusCode = 200;
         return res.json({ success: true, events: events });
       });
+    } else {
+      return res.json({ success: false, message: "next should be a number." });
     }
   } else {
     Event.find({}, function(err, event) {

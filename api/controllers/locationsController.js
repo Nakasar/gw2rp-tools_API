@@ -2,13 +2,32 @@
 
 var mongoose = require('mongoose'), Location = mongoose.model('Locations');
 
+const string_regex = /^([a-z]{1,})$/;
+
 exports.list_all_locations = function(req, res) {
-  Location.find({}, function(err, location) {
-    if (err) {
-      return res.json({ success: false, message: err });
-    }
-    return res.json({ success: true, locations: location });
-  });
+  if (req.query.types) {
+    var query = [];
+    req.query.types.forEach(function (type) {
+      if (string_regex.test(type)) {
+        query.push({ types: type });
+      }
+    });
+    Location.find({ $or : query }).exec(function(err, locations) {
+      if (err) {
+        return res.json({ success: false, message: err });
+      } else {
+        res.statusCode = 200;
+        return res.json({ success: true, locations: locations });
+      }
+    });
+  } else {
+    Location.find({}, function(err, locations) {
+      if (err) {
+        return res.json({ success: false, message: err });
+      }
+      return res.json({ success: true, locations: locations });
+    });
+  }
 };
 
 exports.create_location = function(req, res) {
