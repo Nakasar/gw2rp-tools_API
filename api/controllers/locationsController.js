@@ -6,20 +6,18 @@ const string_regex = /^([a-z]{1,})$/;
 
 exports.list_all_locations = function(req, res) {
   if (req.query.types) {
-    var query = [];
-    req.query.types.forEach(function (type) {
-      if (string_regex.test(type)) {
-        query.push({ types: type });
-      }
-    });
-    Location.find({ $or : query }).exec(function(err, locations) {
-      if (err) {
-        return res.json({ success: false, message: err });
-      } else {
-        res.statusCode = 200;
-        return res.json({ success: true, locations: locations });
-      }
-    });
+    if (Array.isArray(req.query.types)) {
+      Location.find({ types : { $all: req.query.types } }).exec(function(err, locations) {
+        if (err) {
+          return res.json({ success: false, message: err });
+        } else {
+          res.statusCode = 200;
+          return res.json({ success: true, locations: locations });
+        }
+      });
+    } else {
+      return res.json({ success: false, message: "types[] should be an array of strings." + req.query.types });
+    }
   } else {
     Location.find({}, function(err, locations) {
       if (err) {
