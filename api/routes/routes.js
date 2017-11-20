@@ -4,6 +4,7 @@ module.exports = function(router) {
   var events = require('../controllers/eventsController');
   var locations = require('../controllers/locationsController');
   var rumours = require('../controllers/rumoursController');
+  var characters = require('../controllers/charactersController');
 
   router.route('/setup').post(users.create_admin);
 
@@ -17,6 +18,8 @@ module.exports = function(router) {
   router.route('/locations/:locationId').get(locations.read_location);
   router.route('/rumours').get(rumours.list_all_rumours);
   router.route('/rumours/:rumourId').get(rumours.read_rumour);
+  router.route('/characters').get(characters.list_all_characters);
+  router.route('/characters/:characterId').get(characters.read_character);
 
   // middleware checking for auth.
   router.use(users.check_token);
@@ -37,10 +40,17 @@ module.exports = function(router) {
   router.route('/rumours').post(rumours.create_rumour);
   router.route('/rumours/:rumourId').put(rumours.update_rumour).delete(rumours.delete_rumour);
 
+  // Characters Routes
+  router.route('/characters').post(characters.create_character);
+  router.route('/characters/:characterId/caracs').put(characters.update_caracteristics).delete(characters.delete_caracteristics);
+  router.route('/characters/:characterId/skills').put(characters.update_skills).delete(characters.delete_skills);
+  router.route('/characters/:characterId').put(characters.update_character).delete(characters.delete_character);
+
   router.use(users.check_admin);
 
   router.route('/users').delete(users.delete_all);
   router.route('/locations').delete(locations.delete_all);
   router.route('/events').delete(events.delete_all);
   router.route('/rumours').delete(rumours.delete_all);
+  router.route('/characters').delete(characters.delete_all);
 }

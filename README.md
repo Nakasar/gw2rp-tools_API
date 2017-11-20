@@ -52,6 +52,40 @@ La liste des lieux s'obtient à l'adresse `/api/events` (requête GET).  L'adres
 | PUT | authentifié | Met à jour un lieu s'il appartient à cet utilisateur |
 | DELETE | authentifié | Supprime un lieu s'il appartient à cet utilisateur |
 
+| /api/locations | | |
+| ---- | ---- | ---- |
+| GET | | Retourne la liste des lieux |
+| POST | authentifié | ajoute un lieu |
+| DELETE | admin | Supprime tous les lieux |
+
+| /api/locations/_\<locationId\>_ | | |
+| ---- | ---- | ---- |
+| GET | | Retourne les détails du lieu précisé. |
+| PUT | authentifié | Met à jour un lieu s'il appartient à cet utilisateur |
+| DELETE | authentifié | Supprime un lieu s'il appartient à cet utilisateur |
+
+| /api/characters | | |
+| ---- | ---- | ---- |
+| GET | | Retourne la liste des personnages |
+| POST | authentifié | ajoute un personnage |
+| DELETE | admin | Supprime tous les personnages |
+
+| /api/characters/_\<characterId\>_ | | |
+| ---- | ---- | ---- |
+| GET | | Retourne les détails du personnage. |
+| PUT | authentifié | Met à jour un personnage s'il appartient à cet utilisateur |
+| DELETE | authentifié | Supprime un personnage s'il appartient à cet utilisateur |
+
+| /api/characters/_\<characterId\>_/skills | | |
+| ---- | ---- | ---- |
+| PUT | authentifié | Met à jour la liste des compétences d'un personnage s'il appartient à cet utilisateur |
+| DELETE | authentifié | Supprime tout ou partie de la liste des compétences du personnage s'il appartient à cet utilisateur |
+
+| /api/characters/_\<characterId\>_/caracs | | |
+| ---- | ---- | ---- |
+| PUT | authentifié | Met à jour la liste des caractéristiques d'un personnage s'il appartient à cet utilisateur |
+| DELETE | authentifié | Supprime tout ou partie de la liste des caractéristiques du personnage s'il appartient à cet utilisateur |
+
 API Models
 -----------
 ### Utilisateurs
@@ -95,3 +129,15 @@ API Models
 | site | String | Adresse optionnelle d'un site web. |
 | hours | String | Horaires d'ouverture du lieu. |
 | category | String | Valeur à 'location' pour un lieu. |
+
+### Personnages
+| _field_ | _type_ | _description_ |
+| ------ | ----- | ----- |
+| name | String | nom du personnage. |
+| created\_at | Date | date d'enregistrement du personnage. |
+| last\_update | Date | date de dernière modification du personnage. |
+| owner | String | ID de l'utilisateur qui a enregistré le personnage. |
+| description | String | Description du personnage. |
+| appearance | String | Description visuelle du personnage |
+| skills | [{name: String, value: Number, remark: String}] | Liste des compétences du personnage. |
+| caracteristics |[{name: String, value: Number, remark: String}] | Liste des caractéristiques du personnage. |
