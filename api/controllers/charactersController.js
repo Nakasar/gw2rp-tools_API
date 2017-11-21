@@ -42,8 +42,11 @@ exports.read_character = function(req, res) {
   Character.findById(req.params.characterId, function(err, character) {
     if (err) {
       return res.json({ success: false, message: err });
+    } else if (character) {
+      return res.json({ success: true, character: character });
+    } else {
+      return res.json({ success: false, message: "No character for this id.", code: "CHR-01" });
     }
-    return res.json({ success: true, character: character });
   });
 };
 
