@@ -247,7 +247,7 @@ exports.login_user = function(req, res) {
             }
           });
         } else {
-          return res.json({ success: false, message: 'Bad credidentials.' });
+          return res.json({ success: false, message: 'Bad credidentials.', code: 'LOG-01' });
         }
       });
     }

@@ -6,19 +6,30 @@ const value_regex = /^[+-]{0,1}[0-9]{1,2}$/;
 const character_name_regex = /^[a-zA-Z \-_'\u00C0-\u017F]{0,40}$/;
 
 exports.list_all_characters = function(req, res) {
-  if (req.query.search_terms) {
-    if (character_name_regex.test(req.query.search_terms)) {
-      Character.find( { $text: { $search: search_terms } } ).exec(function(err, characters) {
+  if (req.query.search) {
+    if (character_name_regex.test(req.query.search)) {
+      Character.find( { $text: { $search: req.query.search } }, "_id owner name created_date last_update status" ).exec(function(err, characters) {
         if (err) {
-          return res.json({ success: false, message: err , search_terms: req.query.search_terms});
+          return res.json({ success: false, message: err, search_terms: req.query.search });
         }
-        return res.json({ success: true, search_terms: req.query.search_terms, characters: characters });
+        return res.json({ success: true, search_terms: req.query.search, characters: characters });
       });
     } else {
       return res.json({ success: false, message: "search_terms may only contain alphanumeric characters (a-Z, accents, 0-9, ', -, )" });
     }
   } else {
-    Character.find( {} ).exec(function(err, characters) {
+    Character.find( {}, "_id owner name created_date last_update status" ).exec(function(err, characters) {
+      if (err) {
+        return res.json({ success: false, message: err });
+      }
+      return res.json({ success: true, characters: characters });
+    });
+  }
+}
+
+exports.list_all_characters_for_user = function(req, res) {
+  if (req.params.userId) {
+    Character.find( { owner: req.params.userId }, "name owner created_date status last_update" ).exec(function(err, characters) {
       if (err) {
         return res.json({ success: false, message: err });
       }
@@ -77,6 +88,22 @@ exports.update_character = function(req, res) {
             character.status = req.body.status;
           } else {
             return res.json({ success: false, message: "Status must be npc, dead or played."})
+          }
+        }
+        if (req.body.skills && Array.isArray(req.body.skills)) {
+          character.skills = [];
+          for (var i in req.body.skills) {
+            if (validateCaracteristic(req.body.skills[i])) {
+              character.skills.push(req.body.skills[i]);
+            }
+          }
+        }
+        if (req.body.caracteristics && Array.isArray(req.body.caracteristics)) {
+          character.caracteristics = [];
+          for (var i in req.body.caracteristics) {
+            if (validateCaracteristic(req.body.caracteristics[i])) {
+              character.caracteristics.push(req.body.caracteristics[i]);
+            }
           }
         }
         character.last_update = Date.now();

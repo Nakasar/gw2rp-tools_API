@@ -59,5 +59,5 @@ var CharacterSchema = new Schema({
     }
   }]
 });
-
+CharacterSchema.index({ name: 'text' });
 module.exports = mongoose.model('Characters', CharacterSchema);
