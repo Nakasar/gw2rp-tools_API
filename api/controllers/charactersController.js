@@ -134,8 +134,10 @@ function validateCaracteristic(caracteristic) {
 
 function getCharacterCaract(character) {
   var names = [];
-  for (var caractIndex = 0; caractIndex < character.caracteristics.length; caractIndex++) {
-    names.push(character.caracteristics[caractIndex].name);
+  if (character.caracteristics) {
+    for (var caractIndex = 0; caractIndex < character.caracteristics.length; caractIndex++) {
+      names.push(character.caracteristics[caractIndex].name);
+    }
   }
   return names;
 }
@@ -225,8 +227,10 @@ exports.delete_caracteristics = function(req, res) {
 
 function getCharacterSkills(character) {
   var names = [];
-  for (var skillIndex = 0; skillIndex < character.skills.length; skillIndex++) {
-    names.push(character.skills[skillIndex].name);
+  if (character.skills) {
+    for (var skillIndex = 0; skillIndex < character.skills.length; skillIndex++) {
+      names.push(character.skills[skillIndex].name);
+    }
   }
   return names;
 }
@@ -345,3 +349,48 @@ exports.delete_all = function(req, res) {
     }
   });
 };
+
+exports.get_stats = function(req, res) {
+  Character.findOne( { _id: req.params.characterId }, "_id caracteristics skills", function(err, character){
+    if (err) {
+      return res.json({ success: false, message: "Unkown error while trying to search for character."});
+    } else if (character) {
+      var caracs = getCharacterCaract(character);
+      var skills = getCharacterSkills(character);
+
+      if (req.body.stats) {
+        if (Array.isArray(req.body.stats)) {
+
+          var stats = [];
+          for (var caract of character.caracteristics) {
+            if (req.body.stats.includes(caract.name)) {
+              stats.push({ type: "caracteristic", name: caract.name, value: caract.value, remark: caract.remark });
+            }
+          }
+          for (var skill of character.skills) {
+            if (req.body.stats.includes(skill.name)) {
+              stats.push({ type: "skill", name: skill.name, value: skill.value, remark: skill.remark });
+            }
+          }
+
+          return res.json({ success: true, character_id: character._id, stats: stats });
+        } else {
+          return res.json({ success: false, message: "Request specific stats with an Array : stats: [String]" });
+        }
+      } else {
+        var caracsComplete = [];
+        for (var caract of character.caracteristics) {
+          caracsComplete.push({ type: "caracteristic", name: caract.name, value: caract.value, remark: caract.remark });
+        }
+        var skillsComplete = [];
+        for (var skill of character.skills) {
+          skillsComplete.push({ type: "skill", name: skill.name, value: skill.value, remark: skill.remark });
+        }
+
+        return res.json({ success: true, character_id: character._id, caracteristics: caracsComplete, skills: skillsComplete });
+      }
+    } else {
+      return res.json({ success: false, message: "No character with this id."});
+    }
+  })
+}
