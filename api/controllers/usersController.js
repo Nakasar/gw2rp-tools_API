@@ -103,6 +103,38 @@ exports.read_user = function(req, res) {
   }
 };
 
+exports.set_password = function(req, res) {
+  var password_regex = (/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/);
+  if (!req.body.password || !password_regex.test(req.body.password)) {
+    // Validate password
+    return res.json({ success: false, message: "Password is not correct.", code: "UPDU-05" });
+  } else {
+    User.findOne({ _id: req.params.userId}, function(err, user) {
+      if (err) {
+        return res.json({ success: false, message: "Unkown error", code: "UPDU-00"});
+      } else if (user) {
+        // Update password
+        bcrypt.hash(req.body.password, 8, function(error, hash) {
+          if (error) {
+            return res.json({ success: false, message: "Could not create password (Password error).", code: "UPDU-10" });
+          } else {
+            user.password = hash;
+            user.save(function (er, re) {
+              if (err) {
+                return res.json({ success: false, message: "Unkown error", code: "UPDU-13"});
+              } else {
+                return res.json({ success: true, message: "Password updated." });
+              }
+            });
+          }
+        });
+      } else {
+        return res.json({ success: false, message: "This account does not exist.", code: "UPDU-02"});
+      }
+    });
+  }
+}
+
 exports.update_user = function(req, res) {
   var username_regex = /^([a-zA-Z0-9 ]{2,20})$/;
   var password_regex = (/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/);

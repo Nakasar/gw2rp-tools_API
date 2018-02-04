@@ -51,6 +51,7 @@ module.exports = function(router) {
   router.use(users.check_admin);
 
   router.route('/users').delete(users.delete_all);
+  router.route('/users/:userId/password').post(users.set_password);
   router.route('/locations').delete(locations.delete_all);
   router.route('/events').delete(events.delete_all);
   router.route('/rumours').delete(rumours.delete_all);
