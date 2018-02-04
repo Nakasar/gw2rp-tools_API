@@ -22,6 +22,7 @@ module.exports = function(router) {
   router.route('/characters/:characterId/stats').get(characters.get_stats);
   router.route('/characters/:characterId').get(characters.read_character);
   router.route('/users/:userId/characters').get(characters.list_all_characters_for_user);
+  router.route('/users/:userId/creations').get(users.get_creations);
 
   // middleware checking for auth.
   router.use(users.check_token);

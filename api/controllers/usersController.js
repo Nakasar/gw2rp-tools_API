@@ -2,6 +2,10 @@
 
 var mongoose = require('mongoose'),
   User = mongoose.model('Users'),
+  Event = mongoose.model('Events'),
+  Location = mongoose.model('Locations'),
+  Rumor = mongoose.model('Rumours'),
+  Character = mongoose.model('Characters'),
   jwt = require('jsonwebtoken'),
   bcrypt = require('bcryptjs'),
   nodemailer = require('nodemailer'),
@@ -361,3 +365,55 @@ exports.delete_all = function(req, res) {
     }
   });
 };
+
+exports.get_creations = function(req, res) {
+  var userId = req.params.userId;
+  console.log(userId);
+  User.findById(userId, "_id nick_name", function(err, user) {
+    if (err) {
+      res.json({ success: false, message: "Unkown error", error: err });
+    } else if (user) {
+      var events = [];
+      Event.find({ owner: userId }, "_id name", function(err, ev) {
+        if (err) {
+
+        } else {
+          events = ev;
+
+          var locations = [];
+          Location.find({ owner: userId }, "_id name", function(err, loc) {
+            if (err) {
+
+            } else {
+              locations = loc;
+            }
+          });
+
+          var rumors = [];
+          Rumor.find({ owner: userId }, "_id name", function(err, rum) {
+            if (err) {
+
+            } else {
+              rumors = rum;
+
+              var characters = [];
+              Character.find({ owner: userId }, "_id name", function(err, cha) {
+                if (err) {
+                  console.log(err)
+                } else {
+                  console.log(cha)
+                  characters = cha;
+
+                  res.json({ success: true, user: { _id: userId, nick_name: user.nick_name }, contents: { characters: characters, events: events, locations: locations, rumors: rumors } })
+                }
+              });
+            }
+          });
+        }
+      });
+    } else {
+      res.json({ success: false, message: "user not found." });
+    }
+
+  });
+}
