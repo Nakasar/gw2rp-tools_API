@@ -440,14 +440,14 @@ exports.get_creations = function(req, res) {
       res.json({ success: false, message: "Unkown error", error: err });
     } else if (user) {
       var events = [];
-      Event.find({ owner: userId }, "_id name", function(err, ev) {
+      Event.find({ owner: userId }, "_id name created_date", function(err, ev) {
         if (err) {
 
         } else {
           events = ev;
 
           var locations = [];
-          Location.find({ owner: userId }, "_id name", function(err, loc) {
+          Location.find({ owner: userId }, "_id name created_date", function(err, loc) {
             if (err) {
 
             } else {
@@ -456,14 +456,14 @@ exports.get_creations = function(req, res) {
           });
 
           var rumors = [];
-          Rumor.find({ owner: userId }, "_id name", function(err, rum) {
+          Rumor.find({ owner: userId }, "_id name created_date", function(err, rum) {
             if (err) {
 
             } else {
               rumors = rum;
 
               var characters = [];
-              Character.find({ owner: userId }, "_id name", function(err, cha) {
+              Character.find({ owner: userId }, "_id name created_date", function(err, cha) {
                 if (err) {
                   console.log(err)
                 } else {
