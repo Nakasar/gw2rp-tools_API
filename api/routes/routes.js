@@ -11,7 +11,7 @@ module.exports = function(router) {
   // Accessible without authentification
   router.route('/login').post(users.login_user);
   router.route('/signup').post(users.create_user);
-  router.route('/validate/:userId/:token').post(users.validate_email);
+  router.route('/validate/:userId/:token').get(users.validate_email);
   router.route('/me').post(users.is_logged);
   router.route('/events').get(events.list_all_events);
   router.route('/events/:eventId').get(events.read_event);
