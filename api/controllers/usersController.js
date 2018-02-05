@@ -215,6 +215,10 @@ exports.read_user = function(req, res) {
   if (!id_regex.test(req.params.userId)) {
     return res.json({ success: false, message: "Id is not correct", code: "USR-01" });
   } else {
+    var get = "_id nick_name gw2_account gw2_id register_date active";
+    if (req.params.userId == req.decoded.user_id) {
+      get = "_id nick_name email gw2_account gw2_id register_date active";
+    }
     User.findById(req.params.userId, "_id nick_name gw2_account gw2_id register_date active", function(err, user) {
       if (err) {
         return res.json({ success: false, message: err });
