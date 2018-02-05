@@ -121,27 +121,27 @@ exports.validate_email = function(req, res) {
   if (req.params.userId.length > 0 && req.params.token.length > 0) {
     User.findById(req.params.userId, function(err, user) {
       if (err) {
-        return res.sendFile(path.join(__dirname, '../../public/notvalidated.html'));
+        return res.sendFile(path.join(__dirname, '../../public', 'notvalidated.html'));
       } else if (user) {
         if (user.validation_token === req.params.token) {
           user.active = true;
           user.validation_token = "";
           user.save(function(err, us) {
             if (err) {
-              return res.sendFile(path.join(__dirname, '../../public/notvalidated.html'));
+              return res.sendFile(path.join(__dirname, '../../public', 'notvalidated.html'));
             } else {
-              return res.sendFile(path.join(__dirname, '../../public/validated.html'));
+              return res.sendFile(path.join(__dirname, '../../public', 'validated.html'));
             }
           });
         } else {
-          return res.sendFile(path.join(__dirname, '../../public/notvalidated.html'));
+          return res.sendFile(path.join(__dirname, '../../public', 'notvalidated.html'));
         }
       } else {
-        return res.sendFile(path.join(__dirname, '../../public/notvalidated.html'));
+        return res.sendFile(path.join(__dirname, '../../public', 'notvalidated.html'));
       }
     });
   } else {
-    return res.sendFile(path.join(__dirname, '../../public/notvalidated.html'));
+    return res.sendFile(path.join(__dirname, '../../public', 'notvalidated.html'));
   }
 };
 
