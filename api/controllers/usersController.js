@@ -10,6 +10,7 @@ var mongoose = require('mongoose'),
   bcrypt = require('bcryptjs'),
   nodemailer = require('nodemailer'),
   crypto = require('crypto'),
+  path = require('path'),
   config = require('../../config');
 
 exports.create_admin = function(req, res) {
