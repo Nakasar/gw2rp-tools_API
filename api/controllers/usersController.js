@@ -130,7 +130,7 @@ exports.validate_email = function(req, res) {
             if (err) {
               return res.json({ success: false, message: "Invalid token." });
             } else {
-              return res.json({ success: true, message: "User account is now active." });
+              return res.sendFile(__dirname + '/public/validated.html');
             }
           });
         } else {
