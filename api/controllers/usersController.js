@@ -280,7 +280,7 @@ exports.update_user = function(req, res) {
       // Validate gw2_account
       return res.json({ success: false, message: "GW2 Account is not correct (format: Nakasar.5192).", code: "UPDU-04" });
     } else {
-      User.findOne({ _id: req.params.userId}, function(err, user) {
+      User.findOne({ nick_name: req.body.nick_name}, function(err, user) {
         if (err) {
           return res.json({ success: false, message: "Unkown error", code: "UPDU-00"});
         } else if (user) {
@@ -289,6 +289,7 @@ exports.update_user = function(req, res) {
             user.nick_name = req.body.nick_name;
             user.gw2_account = req.body.gw2_account.split(".")[0];
             user.gw2_id = req.body.gw2_account.split(".")[1];
+
             user.save(function(err, user) {
               if (err) {
                 return res.json({ success: false, message: "Unkown error", code: "UPDU-00"});
