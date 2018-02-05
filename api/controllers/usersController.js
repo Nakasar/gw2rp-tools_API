@@ -485,8 +485,8 @@ exports.get_creations = function(req, res) {
 
 exports.set_status = function(req, res) {
   if (req.params.userId) {
-    if (req.query.status && req.query.status.length > 0) {
-      switch (req.quary.status) {
+    if (req.body.status && req.body.status.length > 0) {
+      switch (req.body.status) {
         case "active":
           User.findByIdAndUpdate(req.params.userId, { active: true }, function (err, user) {
             if (err) {
