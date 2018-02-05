@@ -219,7 +219,7 @@ exports.read_user = function(req, res) {
     if (req.params.userId == req.decoded.user_id) {
       get = "_id nick_name email gw2_account gw2_id register_date active";
     }
-    User.findById(req.params.userId, "_id nick_name gw2_account gw2_id register_date active", function(err, user) {
+    User.findById(req.params.userId, get, function(err, user) {
       if (err) {
         return res.json({ success: false, message: err });
       }
