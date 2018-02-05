@@ -9,6 +9,7 @@ var mongoose = require('mongoose'),
   jwt = require('jsonwebtoken'),
   bcrypt = require('bcryptjs'),
   nodemailer = require('nodemailer'),
+  crypto = require('crypto'),
   config = require('../../config');
 
 exports.create_admin = function(req, res) {
@@ -34,7 +35,7 @@ exports.create_admin = function(req, res) {
 }
 
 exports.list_all_users = function(req, res) {
-  User.find({}, "_id nick_name gw2_account gw2_id register_date", function(err, users) {
+  User.find({}, "_id nick_name gw2_account gw2_id register_date active", function(err, users) {
     if (err) {
       return res.send(err);
     }
@@ -74,17 +75,73 @@ exports.create_user = function(req, res) {
           } else {
             var new_user = new User(req.body);
             new_user.password = hash;
+            new_user.validation_token = crypto.randomBytes(64).toString('hex');
             new_user.save(function(err, user) {
               if (err) {
                 return res.json({ success: false, message: err });
               }
 
-              return res.json({ success: true, user: { nick_name: user.nick_name }, message: "Check email for verification." });
+              var validationLink = "https://gw2rp-tools.ovh/api/validate/" + user._id + "/" + user.validation_token;
+
+              var transporter = nodemailer.createTransport({
+                host: config.mail.host,
+                port: config.mail.port,
+                secure: config.mail.secure,
+                auth: {
+                  user: config.mail.user,
+                  pass: config.mail.pass
+                }
+              });
+
+              let mailOptions = {
+                from: '"Abaddon, la Voix des Brumes" <noreply@gw2rp-tools.ovh>',
+                to: user.email,
+                subject: 'Confirmation de compte GW2RP-Tools',
+                text: 'Bienvenue sur la boîte à outils GW2RP-Tools ! Merci de confirmer votre adresse email en cliquant sur le lien suivant pour activer votre compte : ' ,
+                html: '<p>Bienvenue sur la boîte à outils GW2RP-Tools !</p><p>Merci de confirmer votre adresse email en cliquant sur le lien suivant pour activer votre compte :<br/><a href="' + validationLink + '">' + validationLink + '</a></p>'
+              };
+
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.log(error)
+                }
+                console.log('Message sent: %s', info.messageId);
+              });
+
+              return res.json({ success: true, user: { nick_name: user.nick_name }, message: "Check your email for verification." });
             });
           }
         });
       }
     });
+  }
+};
+
+exports.validate_email = function(req, res) {
+  if (req.params.userId.length > 0 && req.params.token.length > 0) {
+    User.findById(req.params.userId, function(err, user) {
+      if (err) {
+        return res.json({ success: false, message: "Invalid token or/and user." });
+      } else if (user) {
+        if (user.validation_token === req.params.token) {
+          user.active = true;
+          user.validation_token = "";
+          user.save(function(err, us) {
+            if (err) {
+              return res.json({ success: false, message: "Invalid token." });
+            } else {
+              return res.json({ success: true, message: "User account is now active." });
+            }
+          });
+        } else {
+          return res.json({ success: false, message: "Invalid token." });
+        }
+      } else {
+        return res.json({ success: false, message: "Invalid token or/and user." });
+      }
+    });
+  } else {
+    return res.json({ success: false, message: "Invalid token or/and user." });
   }
 };
 
@@ -94,7 +151,7 @@ exports.read_user = function(req, res) {
   if (!id_regex.test(req.params.userId)) {
     return res.json({ success: false, message: "Id is not correct", code: "USR-01" });
   } else {
-    User.findById(req.params.userId, "_id nick_name gw2_account gw2_id register_date", function(err, user) {
+    User.findById(req.params.userId, "_id nick_name gw2_account gw2_id register_date active", function(err, user) {
       if (err) {
         return res.json({ success: false, message: err });
       }
@@ -271,17 +328,25 @@ exports.login_user = function(req, res) {
             expiresIn: 86400 // 24 hours
           });
 
-          res.json({
-            success: true,
-            message: 'User logged in',
-            token: token,
-            user: {
-              nick_name: user.nick_name,
-              id: user._id,
-              admin: user.admin,
-              email: user.email
-            }
-          });
+          if (!user.active) {
+            return res.json({
+              success: false,
+              message: 'Account not active.',
+              code: 'LOG-08'
+            });
+          } else {
+            return res.json({
+              success: true,
+              message: 'User logged in',
+              token: token,
+              user: {
+                nick_name: user.nick_name,
+                id: user._id,
+                admin: user.admin,
+                email: user.email
+              }
+            });
+          }
         } else {
           return res.json({ success: false, message: 'Bad credidentials.', code: 'LOG-01' });
         }
@@ -417,3 +482,41 @@ exports.get_creations = function(req, res) {
 
   });
 }
+
+exports.set_status = function(req, res) {
+  if (req.params.userId) {
+    if (req.query.status && req.query.status.length > 0) {
+      switch (req.quary.status) {
+        case "active":
+          User.findByIdAndUpdate(req.params.userId, { active: true }, function (err, user) {
+            if (err) {
+              return res.json({ success: false, message: "Could not update user statis." });
+            } else if (user) {
+              return res.json({ success: true, message: "User is now active", user: { id: user._id } });
+            } else {
+              return res.json({ success: false, message: "User not found." });
+            }
+          });
+          break;
+        case "inactive":
+          User.findByIdAndUpdate(req.params.userId, { active: false }, function (err, user) {
+            if (err) {
+              return res.json({ success: false, message: "Could not update user statis." });
+            } else if (user) {
+              return res.json({ success: true, message: "User is now inactive", user: { id: user._id } });
+            } else {
+              return res.json({ success: false, message: "User not found." });
+            }
+          });
+          break;
+        default:
+          return res.json({ success: false, message: "New status invalid 'active' or 'inactive'" });
+          break;
+      }
+    } else {
+      return res.json({ success: false, message: "New status not specified ({ status: 'active' })." });
+    }
+  } else {
+    return res.json({ success: false, message: "Unspecified user." });
+  }
+};

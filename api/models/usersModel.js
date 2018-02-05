@@ -25,6 +25,13 @@ var UserSchema = new Schema({
     type: String,
     required: "User should have a valid password."
   },
+  active: {
+    type: Boolean,
+    default: false
+  },
+  validation_token: {
+    type: String
+  },
   admin: {
     type: Boolean,
     default: false

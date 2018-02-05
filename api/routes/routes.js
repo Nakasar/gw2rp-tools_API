@@ -11,6 +11,7 @@ module.exports = function(router) {
   // Accessible without authentification
   router.route('/login').post(users.login_user);
   router.route('/signup').post(users.create_user);
+  router.route('/validate/:userId/:token').post(users.validate_email);
   router.route('/me').post(users.is_logged);
   router.route('/events').get(events.list_all_events);
   router.route('/events/:eventId').get(events.read_event);
@@ -53,6 +54,7 @@ module.exports = function(router) {
 
   router.route('/users').delete(users.delete_all);
   router.route('/users/:userId/password').post(users.set_password);
+  router.route('/users/:userId/status').post(users.set_status);
   router.route('/locations').delete(locations.delete_all);
   router.route('/events').delete(events.delete_all);
   router.route('/rumours').delete(rumours.delete_all);
