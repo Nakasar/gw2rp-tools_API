@@ -118,6 +118,69 @@ exports.create_user = function(req, res) {
   }
 };
 
+exports.ask_validation = function(req, res) {
+  if (req.body.nick_name && req.body.nick_name.length > 0 && req.body.password && req.body.password.length > 0) {
+    User.findOne({ nick_name: req.body.nick_name }, function(err, user) {
+      if (err) {
+        return res.json({ success: false, message: "Could not find user."});
+      } else if (user) {
+        if (user.active) {
+          return res.json({ success: false, message: "Account is already verified."});
+        } else {
+          bcrypt.compare(req.body.password, user.password, function(error, result) {
+            if (error) {
+              return res.json({ success: false, message: 'Auth error.' });
+            } else if (result) {
+              // Password matched
+              user.validation_token = crypto.randomBytes(64).toString('hex');
+              user.save(function(err, us) {
+                if (err) {
+                  return res.json({ success: false, message: err });
+                }
+
+                var validationLink = "https://gw2rp-tools.ovh/api/validate/" + user._id + "/" + user.validation_token;
+
+                var transporter = nodemailer.createTransport({
+                  host: config.mail.host,
+                  port: config.mail.port,
+                  secure: config.mail.secure,
+                  auth: {
+                    user: config.mail.user,
+                    pass: config.mail.pass
+                  }
+                });
+
+                let mailOptions = {
+                  from: '"Abaddon, la Voix des Brumes" <noreply@gw2rp-tools.ovh>',
+                  to: user.email,
+                  subject: 'Confirmation de compte GW2RP-Tools',
+                  text: 'Bienvenue sur la boîte à outils GW2RP-Tools ! Merci de confirmer votre adresse email en cliquant sur le lien suivant pour activer votre compte : ' ,
+                  html: '<p>Bienvenue sur la boîte à outils GW2RP-Tools !</p><p>Merci de confirmer votre adresse email en cliquant sur le lien suivant pour activer votre compte :<br/><a href="' + validationLink + '">' + validationLink + '</a></p>'
+                };
+
+                transporter.sendMail(mailOptions, (error, info) => {
+                  if (error) {
+                    console.log(error)
+                  }
+                  console.log('Message sent: %s', info.messageId);
+                });
+
+                return res.json({ success: true, message: "Check your email for verification." });
+              });
+            } else {
+              return res.json({ success: false, message: 'Bad credidentials.', code: 'LOG-01' });
+            }
+          });
+        }
+      } else {
+        return res.json({ success: false, message: "User not found."});
+      }
+    });
+  } else {
+    return res.json({ success: false, message: "Unspecified user."});
+  }
+}
+
 exports.validate_email = function(req, res) {
   if (req.params.userId.length > 0 && req.params.token.length > 0) {
     User.findById(req.params.userId, function(err, user) {
