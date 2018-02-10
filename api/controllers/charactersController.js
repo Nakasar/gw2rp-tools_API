@@ -8,7 +8,7 @@ const character_name_regex = /^[a-zA-Z \-_'\u00C0-\u017F]{0,40}$/;
 exports.list_all_characters = function(req, res) {
   if (req.query.search) {
     if (character_name_regex.test(req.query.search)) {
-      Character.find( { $text: { $search: req.query.search } }, "_id owner name created_date last_update status" ).exec(function(err, characters) {
+      Character.find( { $text: { $search: req.query.search } }, "_id owner name created_date last_update status tags" ).exec(function(err, characters) {
         if (err) {
           return res.json({ success: false, message: err, search_terms: req.query.search });
         }
@@ -18,7 +18,7 @@ exports.list_all_characters = function(req, res) {
       return res.json({ success: false, message: "search_terms may only contain alphanumeric characters (a-Z, accents, 0-9, ', -, )" });
     }
   } else {
-    Character.find( {}, "_id owner name created_date last_update status" ).exec(function(err, characters) {
+    Character.find( {}, "_id owner name created_date last_update status tags" ).exec(function(err, characters) {
       if (err) {
         return res.json({ success: false, message: err });
       }
@@ -29,7 +29,7 @@ exports.list_all_characters = function(req, res) {
 
 exports.list_all_characters_for_user = function(req, res) {
   if (req.params.userId) {
-    Character.find( { owner: req.params.userId }, "name owner created_date status last_update" ).exec(function(err, characters) {
+    Character.find( { owner: req.params.userId }, "name owner created_date status last_update tags" ).exec(function(err, characters) {
       if (err) {
         return res.json({ success: false, message: err });
       }
@@ -82,6 +82,9 @@ exports.update_character = function(req, res) {
         }
         if (req.body.image_url) {
           character.image_url = req.body.image_url;
+        }
+        if (req.body.tags && Array.isArray(req.body.tags)) {
+          character.tags = req.body.tags;
         }
         if (req.body.status) {
           if (["npc", "dead", "played"].indexOf(req.body.status) > -1) {

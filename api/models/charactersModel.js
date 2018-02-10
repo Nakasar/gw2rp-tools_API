@@ -32,6 +32,9 @@ var CharacterSchema = new Schema({
     type: String,
     enum: ["npc", "dead", "played"]
   },
+  tags: {
+    type: [String]
+  },
   caracteristics: [{
     name: {
       type: String,
