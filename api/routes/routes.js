@@ -21,6 +21,7 @@ module.exports = function(router) {
   router.route('/rumours').get(rumours.list_all_rumours);
   router.route('/rumours/:rumourId').get(rumours.read_rumour);
   router.route('/characters').get(characters.list_all_characters);
+  router.route('/characters/search').get(characters.search_characters);
   router.route('/characters/:characterId/stats').get(characters.get_stats);
   router.route('/characters/:characterId').get(characters.read_character);
   router.route('/users/:userId/characters').get(characters.list_all_characters_for_user);

@@ -5,14 +5,46 @@ var mongoose = require('mongoose'), Character = mongoose.model('Characters');
 const value_regex = /^[+-]{0,1}[0-9]{1,2}$/;
 const character_name_regex = /^[a-zA-Z \-_'\u00C0-\u017F]{0,40}$/;
 
+exports.search_characters = function(req, res) {
+  var tags = req.body.tags || req.query.tags;
+  var validatedTags = [];
+  if (tags && Array.isArray(tags)) {
+    for (var tag of tags) {
+      if (character_name_regex.test(tag)) {
+        validatedTags.push(tag);
+      }
+    }
+  }
+
+  // build search query object
+  var query = {};
+
+  var search = req.query.search || req.body.search;
+  if (search && character_name_regex.test(search)) {
+    query.$text = { $search: search };
+  }
+
+  if (validatedTags.length > 0) {
+    query.tags = { $in: validatedTags };
+  }
+  
+  Character.find( query , "_id owner name created_date last_update status tags").exec(function (err, characters) {
+    if (err) {
+      return res.json({ success: false, message: err, tags: validatedTags });
+    }
+    return res.json({ success: true, tags: validatedTags, characters: characters });
+  });
+}
+
 exports.list_all_characters = function(req, res) {
-  if (req.query.search) {
-    if (character_name_regex.test(req.query.search)) {
-      Character.find( { $text: { $search: req.query.search } }, "_id owner name created_date last_update status tags" ).exec(function(err, characters) {
+  var search = req.query.search || req.body.search;
+  if (search) {
+    if (character_name_regex.test(search)) {
+      Character.find( { $text: { $search: search } }, "_id owner name created_date last_update status tags" ).exec(function(err, characters) {
         if (err) {
-          return res.json({ success: false, message: err, search_terms: req.query.search });
+          return res.json({ success: false, message: err, search_terms: search });
         }
-        return res.json({ success: true, search_terms: req.query.search, characters: characters });
+        return res.json({ success: true, search_terms: search, characters: characters });
       });
     } else {
       return res.json({ success: false, message: "search_terms may only contain alphanumeric characters (a-Z, accents, 0-9, ', -, )" });
