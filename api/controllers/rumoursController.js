@@ -25,6 +25,22 @@ exports.list_all_rumours = function(req, res) {
   }
 };
 
+exports.refresh_rumour = function(req, res) {
+  if (req.params.rumourId) {
+    Rumour.findByIdAndUpdate(req.params.rumourId, { last_update: Date.now() }, function(rumour, err) {
+      if (err) {
+        return res.json({ success: false, message: err });
+      } else if (location) {
+        return res.json({ success: true, message: "Rumour will remain for one week.", rumour: rumour });
+      } else {
+        return res.json({ success: false, message: "No rumour found for this id." });
+      }
+    });
+  } else {
+    return res.json({ success: false, message: "No rumour specified" });
+  }
+};
+
 exports.create_rumour = function(req, res) {
   var new_rumour = new Rumour(req.body);
   new_rumour.owner = req.decoded.user_id;
@@ -52,6 +68,7 @@ exports.update_rumour = function(req, res) {
       res.json({ success: false, message: err });
     } else if (rumour) {
       if (rumour.owner === req.decoded.user_id || req.decoded.admin) {
+        req.body.last_update = new Date();
         Rumour.findOneAndUpdate({_id: req.params.rumourId}, req.body, {new: true}, function(err, rumour) {
           if (err) {
             return res.json({ success: false, message: err });
@@ -87,6 +104,13 @@ exports.delete_rumour = function(req, res) {
     }
   });
 };
+
+exports.purgeRumours = function() {
+  var date = new Date((new Date).getTime() - 7*24*60*60*1000); // One week
+  Rumour.remove({ last_update: { $lte: date } }, function(err) {
+
+  });
+}
 
 exports.delete_all = function(req, res) {
   Rumour.remove({}, function(err) {

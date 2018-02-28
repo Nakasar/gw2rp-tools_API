@@ -12,6 +12,10 @@ var RumourSchema = new Schema({
     type: Date,
     default: Date.now
   },
+  last_update: {
+    type: Date,
+    default: Date.now
+  },
   owner: {
     type: String,
     required: 'Location should have an owner'

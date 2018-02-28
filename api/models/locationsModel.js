@@ -11,6 +11,10 @@ var LocationSchema = new Schema({
     type: Date,
     default: Date.now
   },
+  last_update: {
+    type: Date,
+    default: Date.now
+  },
   icon: {
     type: String,
     required: 'Location should have an icon',

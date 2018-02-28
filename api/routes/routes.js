@@ -41,10 +41,12 @@ module.exports = function(router) {
   // Locations Routes
   router.route('/locations').post(locations.create_location);
   router.route('/locations/:locationId').put(locations.update_location).delete(locations.delete_location);
+  router.route('/locations/:locationId/refresh').post(locations.refresh_location);
 
   // Rumours Routes
   router.route('/rumours').post(rumours.create_rumour);
   router.route('/rumours/:rumourId').put(rumours.update_rumour).delete(rumours.delete_rumour);
+  router.route('/rumours/:rumourId/refresh').get(rumours.refresh_rumour);
 
   // Characters Routes
   router.route('/characters').post(characters.create_character);

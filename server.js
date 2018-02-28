@@ -7,10 +7,12 @@ var express = require('express'),
   Rumours = require('./api/models/rumoursModel')
   Characters = require('./api/models/charactersModel'),
   User = require('./api/models/usersModel'),
+  apiFunctions = require('./api/functions.js'),
   bodyParser = require('body-parser'),
   config = require('./config'),
   jwt = require('jsonwebtoken'),
-  cors = require('cors');
+  cors = require('cors'),
+  schedule = require('node-schedule');
 
 // mongoose connection
 mongoose.Promise = global.Promise;
@@ -30,6 +32,11 @@ app.use('/api', apiRoutes)
 
 app.use(function(req, res) {
   res.status(404).send({url: req.originalUrl + ' not found'})
+});
+
+// Shedule API purge.
+var purge = schedule.scheduleJob({ hour: 06, minute: 00 }, function() {
+  apiFunctions.purgeDaily();
 });
 
 app.listen(port);

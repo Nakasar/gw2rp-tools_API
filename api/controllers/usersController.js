@@ -20,7 +20,8 @@ exports.create_admin = function(req, res) {
     admin: true,
     gw2_account: 'Nakasar',
     gw2_id: 5192,
-    email: 'nakasar@outlook.fr'
+    email: 'nakasar@outlook.fr',
+    active: true
   })
 
   bcrypt.hash('password', 8, function(err, hash) {

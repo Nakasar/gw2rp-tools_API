@@ -106,6 +106,14 @@ exports.delete_event = function(req, res) {
   });
 };
 
+exports.purgeEvents = function() {
+  // Event done.
+  var date = new Date((new Date).getTime() - 8*60*60*1000); // 8 hours
+  Event.remove({ end_date: { $lte: date } }, function(err) {
+
+  });
+};
+
 exports.delete_all = function(req, res) {
   Event.remove({}, function(err) {
     if (err) {
