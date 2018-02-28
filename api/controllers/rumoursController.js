@@ -27,7 +27,7 @@ exports.list_all_rumours = function(req, res) {
 
 exports.refresh_rumour = function(req, res) {
   if (req.params.rumourId) {
-    Rumour.findByIdAndUpdate(req.params.rumourId, { last_update: Date.now() }, function(rumour, err) {
+    Rumour.findByIdAndUpdate(req.params.rumourId, { last_update: Date.now() }, function(err, rumour) {
       if (err) {
         return res.json({ success: false, message: err });
       } else if (location) {

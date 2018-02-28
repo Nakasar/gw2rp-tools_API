@@ -30,7 +30,7 @@ exports.list_all_locations = function(req, res) {
 
 exports.refresh_location = function(req, res) {
   if (req.params.locationId) {
-    Location.findByIdAndUpdate(req.params.locationId, { last_update: Date.now() }, function(location, err) {
+    Location.findByIdAndUpdate(req.params.locationId, { last_update: Date.now() }, function(err, location) {
       if (err) {
         return res.json({ success: false, message: err });
       } else if (location) {
