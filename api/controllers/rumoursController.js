@@ -30,7 +30,7 @@ exports.refresh_rumour = function(req, res) {
     Rumour.findByIdAndUpdate(req.params.rumourId, { last_update: Date.now() }, function(err, rumour) {
       if (err) {
         return res.json({ success: false, message: err });
-      } else if (location) {
+      } else if (rumour) {
         return res.json({ success: true, message: "Rumour will remain for one week.", rumour: rumour });
       } else {
         return res.json({ success: false, message: "No rumour found for this id." });
