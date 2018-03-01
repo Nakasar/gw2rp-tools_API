@@ -46,7 +46,7 @@ module.exports = function(router) {
   // Rumours Routes
   router.route('/rumours').post(rumours.create_rumour);
   router.route('/rumours/:rumourId').put(rumours.update_rumour).delete(rumours.delete_rumour);
-  router.route('/rumours/:rumourId/refresh').get(rumours.refresh_rumour);
+  router.route('/rumours/:rumourId/refresh').post(rumours.refresh_rumour);
 
   // Characters Routes
   router.route('/characters').post(characters.create_character);
