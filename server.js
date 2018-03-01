@@ -35,7 +35,7 @@ app.use(function(req, res) {
 });
 
 // Shedule API purge.
-var purge = schedule.scheduleJob({ hour: 06, minute: 00 }, function() {
+var purge = schedule.scheduleJob({ hour: 04, minute: 00 }, function() {
   apiFunctions.purgeDaily();
 });
 
