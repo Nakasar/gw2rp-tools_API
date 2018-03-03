@@ -5,8 +5,9 @@ module.exports = function(router) {
   var locations = require('../controllers/locationsController');
   var rumours = require('../controllers/rumoursController');
   var characters = require('../controllers/charactersController');
+  var guilds = require('../controllers/guildsController');
 
-  router.route('/setup').post(users.create_admin);
+  //router.route('/setup').post(users.create_admin);
 
   // Accessible without authentification
   router.route('/login').post(users.login_user);
@@ -26,6 +27,9 @@ module.exports = function(router) {
   router.route('/characters/:characterId').get(characters.read_character);
   router.route('/users/:userId/characters').get(characters.list_all_characters_for_user);
   router.route('/users/:userId/creations').get(users.get_creations);
+  router.route('/guilds').get(guilds.get_all_guilds);
+  router.route('/guilds/search').get(guilds.search_guilds);
+  router.route('/guilds/:guildId').get(guilds.get_guild);
 
   // middleware checking for auth.
   router.use(users.check_token);
@@ -54,6 +58,9 @@ module.exports = function(router) {
   router.route('/characters/:characterId/skills').put(characters.update_skills).delete(characters.delete_skills);
   router.route('/characters/:characterId').put(characters.update_character).delete(characters.delete_character);
 
+  router.route('/guilds').post(guilds.create_guild);
+  router.route('/guilds/:guildId').put(guilds.update_guild).delete(guilds.delete_guild);
+
   router.use(users.check_admin);
 
   router.route('/users').delete(users.delete_all);
@@ -63,4 +70,5 @@ module.exports = function(router) {
   router.route('/events').delete(events.delete_all);
   router.route('/rumours').delete(rumours.delete_all);
   router.route('/characters').delete(characters.delete_all);
+  router.route('/guilds').delete(guilds.delete_all_guilds);
 }

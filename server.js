@@ -6,6 +6,7 @@ var express = require('express'),
   Location = require('./api/models/locationsModel'),
   Rumours = require('./api/models/rumoursModel')
   Characters = require('./api/models/charactersModel'),
+  Guilds = require('./api/models/guildsModel'),
   User = require('./api/models/usersModel'),
   apiFunctions = require('./api/functions.js'),
   bodyParser = require('body-parser'),
