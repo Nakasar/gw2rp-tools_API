@@ -27,7 +27,7 @@ exports.search_characters = function(req, res) {
   if (validatedTags.length > 0) {
     query.tags = { $in: validatedTags };
   }
-  
+
   Character.find( query , "_id owner name created_date last_update status tags").exec(function (err, characters) {
     if (err) {
       return res.json({ success: false, message: err, tags: validatedTags });
@@ -71,14 +71,24 @@ exports.list_all_characters_for_user = function(req, res) {
 }
 
 exports.create_character = function(req, res) {
-  var new_character = new Character(req.body);
-  new_character.owner = req.decoded.user_id;
-  new_character.save(function(err, character) {
+  // Checks if character name in available.
+  Character.find({ name: req.body.name }, function(err, character) {
     if (err) {
       return res.json({ success: false, message: err });
+    } else if (character) {
+      return res.json({ success: false, message: "Character name already in use.", code: "CHR-10" });
+    } else {
+      // Create new character.
+      var new_character = new Character(req.body);
+      new_character.owner = req.decoded.user_id;
+      new_character.save(function(err, character) {
+        if (err) {
+          return res.json({ success: false, message: err });
+        }
+        return res.json({ success: true, character: character });
+      });
     }
-    return res.json({ success: true, character: character });
-  });
+  })
 }
 
 exports.read_character = function(req, res) {
