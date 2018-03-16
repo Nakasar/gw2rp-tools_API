@@ -123,3 +123,36 @@ exports.delete_all = function(req, res) {
     }
   });
 };
+
+exports.participate = function(req, res) {
+  if (!["no", "cannot", "maybe", "yes"].includes(req.body.status)) {
+    return res.json({ success: false, message: "status must be no, cannot, maybe or yes." })
+  }
+  Event.findById(req.params.eventId, function(err, event) {
+    if (err) {
+      return res.json({ success: false, message: err })
+    } else if (event) {
+      var participation = {
+        user: req.decoded.user_id,
+        status: req.body.status,
+        date: new Date()
+      }
+      // Search for current user in participation list
+      for (var participant of event.participants) {
+        if (participant.user === req.decoded.user_id) {
+          event.participants.splice(event.participants.indexOf(participant), 1)
+          break
+        }
+      }
+      event.participants.push(participation)
+      event.save(function(err, new_event) {
+        if (err) {
+          return res.json({ success: false, message: err })
+        }
+        return res.json({ success: true, message: "Participation updated for user.", event: new_event })
+      })
+    } else {
+      return res.json({ success: false, message: "No event with such id." })
+    }
+  })
+}

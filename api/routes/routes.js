@@ -41,6 +41,7 @@ module.exports = function(router) {
   // Events Routes
   router.route('/events').post(events.create_event);
   router.route('/events/:eventId').put(events.update_event).delete(events.delete_event);
+  router.route('/events/:eventId/participate').post(events.participate);
 
   // Locations Routes
   router.route('/locations').post(locations.create_location);

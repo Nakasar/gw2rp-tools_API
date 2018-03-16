@@ -52,7 +52,17 @@ var EventSchema = new Schema({
     enum: ['peaceful', 'easy', 'normal', 'difficult', 'hardcore'],
     default: 'normal',
     required: true
-  }
+  },
+  participants: [{
+    user: String,
+    status: {
+      type: String,
+      default: "no"
+    },
+    date: {
+      type: String,
+    }
+  }]
 });
 
 module.exports = mongoose.model('Events', EventSchema);
