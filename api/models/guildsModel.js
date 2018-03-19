@@ -29,6 +29,7 @@ var GuildSchema = new Schema({
     _id: String,
     role: String
   }],
+  tags: [String],
   summary: String,
   description: String,
   usual_locations: [{

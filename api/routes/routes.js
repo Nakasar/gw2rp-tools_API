@@ -17,6 +17,7 @@ module.exports = function(router) {
   router.route('/me').post(users.is_logged);
   router.route('/events').get(events.list_all_events);
   router.route('/events/:eventId').get(events.read_event);
+  router.route('/events/:eventId/participants').get(events.get_participants);
   router.route('/locations').get(locations.list_all_locations);
   router.route('/locations/:locationId').get(locations.read_location);
   router.route('/rumours').get(rumours.list_all_rumours);

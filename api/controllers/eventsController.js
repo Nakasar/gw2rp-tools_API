@@ -1,6 +1,6 @@
 'use strict';
 
-var mongoose = require('mongoose'), Event = mongoose.model('Events');
+var mongoose = require('mongoose'), Event = mongoose.model('Events'), User = mongoose.model('Users');
 
 const digit_regex = /^([0-9]{1,2})$/;
 const string_regex = /^([a-z]{1,})$/;
@@ -154,5 +154,22 @@ exports.participate = function(req, res) {
     } else {
       return res.json({ success: false, message: "No event with such id." })
     }
+  })
+}
+
+exports.get_participants = function(req, res) {
+  Event.findById(req.params.eventId).then(function(event) {
+    var participation = []
+
+    event.participants.forEach(function(participant) {
+      participation.push(User.findById(participant.user, "_id nick_name gw2_account gw2_id"))
+    })
+
+    return Promise.all(participation)
+  }).then(function(participation) {
+    console.log(participation)
+    return res.json({ success: true, participants: participation })
+  }).catch(function(err) {
+    return res.status(500).json({ success: false, message: err })
   })
 }

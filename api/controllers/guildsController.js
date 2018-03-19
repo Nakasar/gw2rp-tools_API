@@ -2,81 +2,19 @@
 
 var mongoose = require('mongoose'), Guild = mongoose.model('Guilds');
 
+const url_regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi;
 const string_regex = /^([a-z]{1,})$/;
-const guild_name_regex = /^([a-zA-Z -'0-9]{1,})$/;
-
-var mockGuilds = [
-  {
-    _id: "0655624ad551a",
-    name: "Pacte des Oubliés",
-    image: "azdazd",
-    tags: ["mercenaires", "explorateurs"],
-    site: "http://example.com",
-    summary: "Guilde de chasseurs d'artefacts et d'explorateurs basée au Pavillon de Chasse dans la Vallée de la Reine.",
-    description: `
-    Nous pratiquons le Roleplay principalement.
-
-Comme son nom l'indique, la guilde a pour but de retrouver des objets ou des savoirs oubliés. Pour cela, trois phases sont nécessaires, correspondant aux trois axes de la guilde :
-1) Un axe de Recherche Préliminaire : Basé sur l'étude de cartes, de textes, voire même d'objet, de dessin ou autre. Peu importe tant qu'il y a une indication vers l'objet souhaité.
-2) Un axe d'Exploration et de Récupération de l'objet : C'est la partie sur le terrain de la guilde, la partie dédiée plus aux aventuriers et aux amateurs d'action. Car qui sait, ce que nous pourrons rencontrer en chemin. Cependant chacun est libre de participer.
-3) Un axe d'Etude d'objet : Etudier sa magie, ses effets, découvrir ses secrets, s'il possède des mécanismes ou autre... Si il cache autre chose.. Estimer aussi sa valeur marchande. Et décider si l'objet peut-être vendu ou doit être confié à un organisme plus approprié.
-
-Le but n'est pas de cheaté les gens avec des objets.
-
-Pour la guilde, nous recherchons tout profils, mages, érudits, aventuriers, mercenaires... Chacun aura une utilité. Peu nous importe votre race, votre classe ou votre origine sociale.
-De plus, une spécialisation dans un des trois axes, ne rend pas hermétique au reste. Chacun est libre de participer à ce qu'il préfère. Il peut y avoir des gens qui vont suivre toutes les étapes de récupération d'un objet et pas d'un autre, ou bien des gens qui ne feront qu'un axe. Comme bon vous semble.
-Le but étant aussi d'apprendre les uns des autres, découvrir d'autre choses.
-    `.trim(),
-    members: [
-      {
-        _id: "699zad495azd",
-        nick_name: "Nakasar",
-        role: "master"
-      },
-      {
-        _id: "4852ffa2215",
-        nick_name: "Naliia",
-        role: "officer"
-      },
-      {
-        _id: "59a62d5z6da",
-        nick_name: "Gifter",
-        role: "member"
-      }
-    ],
-    locations: [
-      {
-        _id: "5925464584",
-        name: "Pavillon de Chasse",
-        type: "rp"
-      },
-      {
-        _id: "115",
-        name: "Bettletun",
-        type: "gw2"
-      }
-    ]
-  },
-  {
-    _id: "85az9d22aza1f",
-    name: "Unité Sentinelle",
-    image: "/src/img/bg/purty_wood.png",
-    tags: ["séraphins", "enquêtes", "militaires"],
-    summary: "Unité de séraphins spécialisés dans les affaires extérieures."
-  },
-  {
-    _id: "5a8d89a2ff9a",
-    name: "Caravaniers",
-    tags: ["mercenaires"]
-  }
-]
+const guild_name_regex = /^([a-zA-Z \-_'\u00C0-\u017F0-9]{1,50})$/;
+const regex_html = /<(.|\n)*?>/;
 
 exports.get_all_guilds = function(req, res) {
-  var guilds = []
-  for (var guild of mockGuilds) {
-    guilds.push({ _id: guild._id, name: guild.name, image: guild.image, tags: guild.tags, summary: guild.summary })
-  }
-  return res.json({ success: true, guilds: guilds })
+  Guild.find({}, function(err, guilds) {
+    if (err) {
+      return res.json({ success: false, message: "Unknow error while trying to fetch all guild." })
+    } else {
+      return res.json({ success: true, guilds: guilds })
+    }
+  })
 }
 
 exports.search_guilds = function(req, res) {
@@ -127,11 +65,114 @@ exports.create_guild = function(req, res) {
 }
 
 exports.update_guild = function(req, res) {
-  return res.json({ success: true, guild: "none" })
+  Guild.findById(req.params.guildId, function(err, guild) {
+    if (err) {
+      return res.json({ success: false, message: "Unkown error while updating guild.", code: "GUI-00" })
+    } else if (guild) {
+      if (guild.owner == req.decoded.user_id) {
+        // Update guild info.
+        if (req.body.name) {
+          // Check if there is no guild with such name.
+          Guild.find({ name: req.body.guild_name }, function(error, guildFound) {
+            if (err) {
+              return res.json({ success: false, message: "Unkown error while updating guild name.", code: "GUI-00" })
+            } else if (guildFound.length > 0) {
+              return res.json({ success: false, message: "Guild name already used.", code: "GUI-02" })
+            } else {
+              // No guild found, modify guild name
+              guild.name = req.body.name
+              guild.save(function(err, newguild) {
+                return res.json({ success: true, guild: guild })
+              })
+            }
+          })
+        } else if (req.body.summary) {
+          guild.summary = req.body.summary
+          guild.save(function(error, newguild) {
+            if (err) {
+              return res.json({ success: false, message: "Unkown error while updating guild summary.", code: "GUI-00" })
+            } else {
+              return res.json({ success: true, guild: guild })
+            }
+          })
+        } else if (req.body.description) {
+          guild.description = req.body.description
+          guild.save(function(error, newguild) {
+            if (err) {
+              return res.json({ success: false, message: "Unkown error while updating guild description.", code: "GUI-00" })
+            } else {
+              return res.json({ success: true, guild: guild })
+            }
+          })
+        } else if (req.body.image) {
+          guild.image = req.body.image
+          guild.save(function(error, newguild) {
+            if (err) {
+              return res.json({ success: false, message: "Unkown error while updating guild image.", code: "GUI-00" })
+            } else {
+              return res.json({ success: true, guild: guild })
+            }
+          })
+        } else if (req.body.site) {
+          if (url_regex.test(req.body.site)) {
+            guild.site = req.body.site
+          } else {
+            guild.site = ""
+          }
+          guild.save(function(error, newguild) {
+            if (err) {
+              return res.json({ success: false, message: "Unkown error while updating guild site.", code: "GUI-00" })
+            } else {
+              return res.json({ success: true, guild: guild })
+            }
+          })
+        } else if (req.body.tags) {
+          if (Array.isArray(req.body.tags)) {
+            var validatedTags = []
+            req.body.tags.forEach(tag => validatedTags.push(tag.replace(regex_html, "")))
+            guild.tags = validatedTags
+            guild.save(function(err, newguild) {
+              if (err) {
+                return res.json({ success: false, message: "Unkown error while updating guild tags.", code: "GUI-00" })
+              } else {
+                return res.json({ success: true, guild: guild })
+              }
+            })
+          } else {
+            return res.json({ success: false, message: "tags should be an array of String." })
+          }
+        } else {
+          return res.json({ success: false, message: "Update guild name, tags, site, image, summary or description." })
+        }
+      } else {
+        return res.json({ success: false, message: "You are not allowed to modify this guild.", code: "GUI-03" })
+      }
+    } else {
+      return res.json({ success: false, message: "There is no guild with such ID.", code: "GUI-01" })
+    }
+  })
 }
 
 exports.delete_guild = function(req, res) {
-  return res.json({ success: true, message: "Guild deleted." })
+  Guild.findById(req.params.guildId, function(err, guild) {
+    if (err) {
+      return res.json({ success: false, message: "Unkown error while trying to delete guild.", code: "GUI-00" })
+    } else if (guild) {
+      if (guild.owner === req.decoded.id || req.decoded.admin) {
+        Guild.remove({ _id: guild._id }, function(error) {
+          if (error) {
+            return res.json({ success: false, message: "Unkown error while trying to delete guild.", code: "GUI-00" })
+          } else {
+            return res.json({ success: true, message: "Guild deleted." })
+          }
+        })
+      } else {
+        return res.json({ success: false, message: "You are not allowed to delete this guild.", code: "GUI-03" })
+      }
+    } else {
+      return res.json({ success: false, message: "There is no guild with such ID.", code: "GUI-01" })
+    }
+  })
 }
 
 exports.delete_all_guilds = function(req, res) {
