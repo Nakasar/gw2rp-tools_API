@@ -39,4 +39,5 @@ var GuildSchema = new Schema({
   }]
 })
 
+GuildSchema.index({ name: 'text' });
 module.exports = mongoose.model('Guilds', GuildSchema)

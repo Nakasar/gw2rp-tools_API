@@ -18,7 +18,31 @@ exports.get_all_guilds = function(req, res) {
 }
 
 exports.search_guilds = function(req, res) {
-  return res.json({ success: true, guilds: [], search: "none" })
+  var query = {}
+
+  var tags = req.body.tags || req.query.tags;
+  var validatedTags = [];
+  if (tags && Array.isArray(tags)) {
+    for (var tag of tags) {
+      validatedTags.push(tag);
+    }
+  }
+
+  let search = req.query.search || req.body.search
+  if (search) {
+    query.$text = { $search: search }
+  }
+  if (validatedTags.length > 0) {
+    query.tags = { $in: validatedTags }
+  }
+
+  Guild.find( query, {}).exec(function (err, guilds) {
+    if (err) {
+      console.log(err)
+      return res.json({ success: false, message: "Could not search guilds.", search: search })
+    }
+    return res.json({ success: true, guilds: guilds, search: search })
+  })
 }
 
 exports.get_guild = function(req, res) {
