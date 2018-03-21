@@ -167,9 +167,35 @@ exports.get_participants = function(req, res) {
 
     return Promise.all(participation)
   }).then(function(participation) {
-    console.log(participation)
     return res.json({ success: true, participants: participation })
   }).catch(function(err) {
     return res.status(500).json({ success: false, message: err })
   })
+}
+
+exports.get_participants_by_name = function(req, res) {
+  let search = req.body.search || req.query.search
+  if (search) {
+    console.log(search)
+    Event.findOne({ name: search }, "_id name end_date description contact site difficulty participants").then(function(event) {
+      if (event) {
+        var participation = []
+
+        event.participants.forEach(function(participant) {
+          participation.push(User.findById(participant.user, "_id nick_name gw2_account gw2_id"))
+        })
+
+        return Promise.all(participation)
+      } else {
+        return Promise.all([])
+      }
+    }).then(function(participation) {
+      return res.json({ success: true, participants: participation })
+    }).catch(function(err) {
+      console.log(err)
+      return res.status(500).json({ success: false, message: err })
+    })
+  } else {
+    return res.json({ success: false, message: "Search terms must be precised in search."})
+  }
 }

@@ -16,6 +16,7 @@ module.exports = function(router) {
   router.route('/validate/:userId/:token').get(users.validate_email);
   router.route('/me').post(users.is_logged);
   router.route('/events').get(events.list_all_events);
+  router.route('/events/search/participants').get(events.get_participants_by_name);
   router.route('/events/:eventId').get(events.read_event);
   router.route('/events/:eventId/participants').get(events.get_participants);
   router.route('/locations').get(locations.list_all_locations);
