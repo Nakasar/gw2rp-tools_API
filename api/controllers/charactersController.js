@@ -72,10 +72,10 @@ exports.list_all_characters_for_user = function(req, res) {
 
 exports.create_character = function(req, res) {
   // Checks if character name in available.
-  Character.find({ name: req.body.name }, function(err, character) {
+  Character.find({ name: req.body.name }, function(err, characters) {
     if (err) {
       return res.json({ success: false, message: err });
-    } else if (character) {
+    } else if (characters.length > 0) {
       return res.json({ success: false, message: "Character name already in use.", code: "CHR-10" });
     } else {
       // Create new character.
