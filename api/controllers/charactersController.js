@@ -1,6 +1,7 @@
 'use strict';
 
 var mongoose = require('mongoose'), Character = mongoose.model('Characters');
+const User = mongoose.model('Users');
 
 const value_regex = /^[+-]{0,1}[0-9]{1,2}$/;
 const character_name_regex = /^[a-zA-Z \-_'\u00C0-\u017F]{0,40}$/;
@@ -94,9 +95,19 @@ exports.create_character = function(req, res) {
 exports.read_character = function(req, res) {
   Character.findById(req.params.characterId, function(err, character) {
     if (err) {
-      return res.json({ success: false, message: err });
+      return res.json({ success: false, message: "Could not read character." });
     } else if (character) {
-      return res.json({ success: true, character: character });
+      // Get character owner.
+      User.findById(character.owner, (err, user) => {
+        if (err) {
+          return res.json({ success: false, message: "Could not read player of character." });
+        } else if (user) {
+          character.player = user.nick_name;
+          return res.json({ success: true, character: character });
+        } else {
+          return res.json({ success: true, character: character });
+        }
+      });
     } else {
       return res.json({ success: false, message: "No character for this id.", code: "CHR-01" });
     }
